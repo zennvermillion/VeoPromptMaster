@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Veo Prompt Master</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar-left">
+            <div class="sidebar-header">
+                <h1>VEO <span class="accent">PROMPT</span> MASTER</h1>
+                <span id="appVersion"></span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <section class="card">
+                    <h2>Create Your Prompt</h2>
+                    <div class="input-group">
+                        <label for="mainNiche">1. Pilih Kategori Utama</label>
+                        <select id="mainNiche"></select>
+                    </div>
+                    <div class="input-group">
+                        <label for="subNiche">2. Pilih Sub-Kategori</label>
+                        <select id="subNiche" disabled></select>
+                    </div>
+                    <div class="btn-grid">
+                        <button id="generateBtn" class="primary" disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+                            Generate
+                        </button>
+                        <button id="randomBtn" class="secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12H3"/><path d="m18 9-3 3 3 3"/><path d="m6 15 3-3-3-3"/></svg>
+                            Random
+                        </button>
+                    </div>
+                    <div class="input-group" style="margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                        <label for="apiKeyInput">Your Gemini API Key</label>
+                        <input type="password" id="apiKeyInput" placeholder="Masukkan kunci API Anda...">
+                        <button id="saveApiKeyBtn" class="secondary" style="width:100%; margin-top:10px;">Simpan Kunci</button>
+                    </div>
+                </section>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="manageNichesBtn" class="secondary">Kelola Niche</button>
+                <button id="modeToggle" aria-label="Toggle Dark/Light Mode"></button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="output-card card">
+                <h2>Generated Result</h2>
+                <pre id="output" aria-live="polite">Hasil prompt akan muncul di sini...</pre>
+                <div class="action-buttons">
+                    <button id="copyBtn" class="secondary" disabled><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>Copy</button>
+                    <button id="favBtn" class="secondary" disabled><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>Favorite</button>
+                </div>
+                <div id="metadataSection" class="metadata-section" hidden>
+                    <hr class="divider">
+                    <button id="generateMetaBtn" class="primary"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5.22c-1.25 0-2.5 1.06-4 1.06-1.5 0-2.75-1.06-4-1.06A4.91 4.91 0 0 0 2 9.78c0 4.22 3 12.22 6 12.22 1.25 0 2.5-1.06 4-1.06Z"/><path d="M12 2.22c-1.25 0-2.5 1.06-4 1.06A4.91 4.91 0 0 0 2 7.78c0 4.22 3 12.22 6 12.22 1.25 0 2.5-1.06 4-1.06 1.5 0 2.75-1.06 4-1.06A4.91 4.91 0 0 0 17 5.22c-1.25 0-2.5 1.06-4 1.06Z"/></svg>Generate Titles & Keywords</button>
+                    <div id="metadataResult" hidden>
+                         <div class="meta-output"><h3>Titles</h3><pre id="titlesOutput"></pre></div>
+                        <div class="meta-output"><h3>Keywords</h3><pre id="keywordsOutput"></pre></div>
+                    </div>
+                </div>
+            </div>
+            <div class="export-card card">
+                <h2>Batch Export</h2>
+                <div class="export-status">
+                    <p>Metadata Terkumpul: <span id="exportCounter">0/25</span></p>
+                    <div class="progress-bar-container"><div id="progressBar" class="progress-bar"></div></div>
+                </div>
+                <div class="action-buttons">
+                    <button id="exportCsvBtn" class="primary" disabled>Export ke CSV</button>
+                    <button id="clearBatchBtn" class="secondary">Kosongkan Batch</button>
+                </div>
+            </div>
+        </main>
+
+        <aside class="sidebar-right">
+             <div class="history-card card">
+                <div class="tabs">
+                    <button id="tabHistory" class="active" aria-selected="true">History</button>
+                    <button id="tabFavorite" aria-selected="false">Favorite</button>
+                </div>
+                <div id="historyFavoriteContainer">
+                    <div id="historyList"></div>
+                    <div id="favoriteList" hidden></div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <div id="notif" role="alert" aria-live="assertive"></div>
+
+    <dialog id="nicheModal">
+        <div class="modal-header">
+            <h2>Kelola Niche & Sub-Niche</h2>
+            <button id="closeNicheModal" class="close-button">&times;</button>
+        </div>
+        <div class="modal-content">
+            <div class="modal-column">
+                <h3>Tambah Kategori Utama</h3>
+                <div class="modal-input-group">
+                    <input type="text" id="newMainNicheInput" placeholder="Contoh: Perjalanan & Vlog">
+                    <button id="addMainNicheBtn" class="primary">Tambah</button>
+                </div>
+                <h3>Tambah Sub-Kategori</h3>
+                <div class="modal-input-group">
+                    <select id="mainNicheSelectForNewSub"></select>
+                    <input type="text" id="newSubNicheInput" placeholder="Contoh: Pemandangan Kota Malam Hari">
+                    <button id="addSubNicheBtn" class="primary">Tambah</button>
+                </div>
+            </div>
+            <div class="modal-column">
+                <h3>Daftar Saat Ini</h3>
+                <div id="nicheManagementList" class="niche-management-list">
+                    </div>
+            </div>
+        </div>
+        <div id="modalNotif" class="modal-notif"></div>
+    </dialog>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

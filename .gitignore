@@ -1,0 +1,8 @@
+# Folder dependensi Node.js
+node_modules
+
+# Folder hasil build/distribusi
+dist
+
+# File environment yang berisi kunci rahasia
+.env
