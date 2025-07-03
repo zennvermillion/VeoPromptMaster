@@ -102,3 +102,23 @@ dialog::backdrop { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4
 #progressBar { width: 0%; height: 8px; background-color: var(--success-color); transition: width 0.3s ease; }
 .export-counter { text-align: center; font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
 ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: var(--bg-app); } ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+#negativePromptSection h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+#negativePromptOutput {
+    font-family: var(--font-mono);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-muted);
+    background-color: var(--bg-app);
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 16px;
+}

@@ -68,8 +68,27 @@ ipcMain.handle('save-csv', async (event, csvData) => {
 ipcMain.handle("generate-prompt", async (event, { sub }) => {
     const GEMINI_API_KEY = store.get('geminiApiKey');
     if (!GEMINI_API_KEY) return { error: "Kunci API belum diatur." };
-    const promptText = `Create a detailed, cinematic 8-second video prompt about "${sub}". Describe the scene in a single, flowing paragraph. Weave together the environment, camera movements, lighting, and overall mood. Do not use labels or bullet points.`;
-    return await generateFromGemini(promptText, GEMINI_API_KEY);
+
+    const promptText = `
+    Based on the sub-category "${sub}", create a detailed, cinematic 8-second video prompt.
+
+    Your response MUST be a valid JSON object with two keys:
+    1. "prompt": A string containing the full, detailed video prompt in a single flowing paragraph.
+    2. "negative_prompt": An array of 10-15 relevant negative keywords to avoid common AI artifacts for this specific prompt (e.g., "blurry", "deformed", "watermark", "text").
+
+    Do not include any text outside of the JSON object.
+    `;
+    
+    const result = await generateFromGemini(promptText, GEMINI_API_KEY, "application/json");
+    if (result.error) return { error: result.error };
+
+    try {
+        const parsedResult = JSON.parse(result.text);
+        return { success: true, ...parsedResult };
+    } catch (e) {
+        console.error("Failed to parse JSON from AI:", result.text);
+        return { error: "Gagal mem-parse respons dari AI." };
+    }
 });
 
 // NAMA HANDLER DIPERBAIKI DI SINI

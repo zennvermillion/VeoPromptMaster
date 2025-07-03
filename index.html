@@ -42,7 +42,28 @@
                 <button class="main-tab-button" data-tab="favorite">Favorite</button>
             </div>
             <div id="generatorView" class="tab-content active">
-                <div class="output-card card"><pre id="output" aria-live="polite">Hasil prompt akan muncul di sini...</pre><div class="action-buttons"><button id="copyBtn" class="secondary" disabled>Copy</button><button id="favBtn" class="secondary" disabled>Favorite</button></div><div id="metadataSection" class="metadata-section" hidden><hr class="divider"><button id="startSessionBtn" class="primary">Mulai Sesi Produksi dengan Prompt Ini</button></div></div>
+                <div class="output-card card">
+                    <h2>Generated Result</h2>
+                    <pre id="output" aria-live="polite">Hasil prompt akan muncul di sini...</pre>
+                    <div class="action-buttons">
+                        <button id="copyBtn" class="secondary" disabled>Copy Prompt</button>
+                        <button id="favBtn" class="secondary" disabled>Favorite</button>
+                    </div>
+
+                    <div id="negativePromptSection" class="metadata-section" hidden>
+                        <hr class="divider">
+                        <h3>Negative Prompt Suggestion</h3>
+                        <pre id="negativePromptOutput"></pre>
+                        <div class="action-buttons">
+                            <button id="copyNegativeBtn" class="secondary">Copy Negative Prompt</button>
+                        </div>
+                    </div>
+
+                    <div id="metadataSection" class="metadata-section" hidden>
+                        <hr class="divider">
+                        <button id="startSessionBtn" class="primary">Mulai Sesi Produksi dengan Prompt Ini</button>
+                    </div>
+                </div>
             </div>
             <div id="production-queueView" class="tab-content"><div class="screening-setup card"><h2>Production Folder Setup</h2><p>Pilih sebuah folder di komputermu untuk diawasi...</p><button id="selectFolderBtn" class="primary">Pilih Folder untuk Diawasi</button><p class="folder-path">Folder saat ini: <span id="watchedFolderPath">Belum diatur</span></p></div><div class="screening-queue-card card"><h2>Antrean Produksi</h2><div id="activePromptDisplay" class="folder-path" hidden></div><div id="productionQueue" class="production-queue"><div class="empty-queue">Belum ada video baru...</div></div></div></div>
             <div id="historyView" class="tab-content list-view-card"><div id="historyList" class="history-favorite-list"></div></div>

@@ -19,8 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const watchedFolderPathEl = getEl("watchedFolderPath");
     const productionQueueEl = getEl("productionQueue");
     const activePromptDisplay = getEl("activePromptDisplay");
+    const negativePromptSection = getEl("negativePromptSection"), negativePromptOutput = getEl("negativePromptOutput"), copyNegativeBtn = getEl("copyNegativeBtn");
 
-    let activePrompt = "", currentPrompt = "", currentHistoryTab = "history";
+    let activePrompt = "", currentPrompt = "", negativePromptText = "", currentHistoryTab = "history";
     let historyData = [], favoriteData = [], metadataBatch = [], niches = {};
     const BATCH_GOAL = 25;
     const defaultNiches = { "💫 Abstract & Motion": ["Glowing particle symphony", "Liquid ink explosion in space"], "💼 Business & Office": ["Startup team brainstorming in glass office", "Late-night coder in modern workspace"], "🍜 Food & Culinary": ["Street vendor grilling satay at sunset", "Slow motion of soup being poured into bowl"], "🌿 Nature & Landscape": ["Fog rolling over mountain ridge at dawn", "Sunlight through ancient forest canopy"], "🎉 Seasonal & Event": ["New Year fireworks over city skyline", "Winter snow festival with glowing lanterns"], "🤖 Tech & Futuristic": ["Humanoid robot exploring neon-lit lab", "Futuristic city skyline with flying cars"], "🌀 Surreal & Dreamscape": ["Floating islands over cloud ocean", "Dreamlike glowing forest with bioluminescence"], "😂 Humor & Levity": ["Office chair race in slow motion", "Dog wearing glasses working on laptop", "Cat knocking things off table"], "🌆 Retro Futurism": ["1980s neon cityscape with VHS glitch", "Cyberpunk computer lab with retro monitors"], "🎥 Immersive Cinematics": ["Walking through glowing tunnel with depth", "Cinematic drone shot over misty valley at sunrise"]};
@@ -40,7 +41,35 @@ document.addEventListener('DOMContentLoaded', () => {
     function addToHistory(historyObject) { if (!historyObject || !historyObject.prompt) return; if (historyData.some(item => item.prompt === historyObject.prompt)) return; historyData.push(historyObject); if (historyData.length > 25) historyData.shift(); localStorage.setItem("veoPromptHistory_v3", JSON.stringify(historyData)); renderList('history'); }
     function addToFavorite(prompt) { if (!prompt || favoriteData.includes(prompt)) return; favoriteData.push(prompt); localStorage.setItem("veoPromptFavorites_v2", JSON.stringify(favoriteData)); showNotification("Ditambahkan ke favorit!"); renderList('favorite'); if (favBtn) favBtn.disabled = true; }
     function removeFavorite(prompt) { favoriteData = favoriteData.filter(fav => fav !== prompt); localStorage.setItem("veoPromptFavorites_v2", JSON.stringify(favoriteData)); showNotification("Dihapus dari favorit."); renderList('favorite'); }
-    async function generateSinglePrompt(sub) { try { const result = await window.api.generatePrompt({ sub }); if (result.error) { throw new Error(result.error); } if (output) output.textContent = result.text; currentPrompt = result.text; if (copyBtn) copyBtn.disabled = false; if (favBtn) favBtn.disabled = favoriteData.includes(result.text); if (metadataSection) metadataSection.hidden = false; addToHistory({ subNiche: sub, prompt: result.text }); } catch (err) { console.error(err); if(output) output.textContent = `Error: ${err.message}`; } }
+    async function generateSinglePrompt(sub) { 
+        try { 
+            const result = await window.api.generatePrompt({ sub }); 
+            if (result.error) { throw new Error(result.error); } 
+            
+            if(result.success) {
+                const promptText = result.prompt;
+                negativePromptText = Array.isArray(result.negative_prompt) ? result.negative_prompt.join(', ') : '';
+
+                if (output) output.textContent = promptText;
+                if (negativePromptOutput) negativePromptOutput.textContent = negativePromptText;
+                
+                currentPrompt = promptText;
+                if (copyBtn) copyBtn.disabled = false;
+                if (favBtn) favBtn.disabled = favoriteData.includes(promptText);
+                if (metadataSection) metadataSection.hidden = false;
+                if (negativePromptSection) negativePromptSection.hidden = false;
+
+                addToHistory({ subNiche: sub, prompt: promptText });
+            } else {
+                throw new Error("Respons dari AI tidak valid.");
+            }
+        } catch (err) { 
+            console.error(err); 
+            if(output) output.textContent = `Error: ${err.message}`; 
+            if(negativePromptSection) negativePromptSection.hidden = true;
+        } 
+    }
+    
     function updateExportUI() { if (!exportCounter || !progressBar || !exportCsvBtn) return; const count = metadataBatch.length; exportCounter.textContent = `${count}/${BATCH_GOAL}`; const progressPercentage = Math.min((count / BATCH_GOAL) * 100, 100); progressBar.style.width = `${progressPercentage}%`; exportCsvBtn.disabled = count === 0; }
     function convertToCSV(data) { const header = '"Filename","Title","Keywords","Generated by AI"\n'; const rows = data.map(item => { const cleanTitle = (item.Title || '').replace(/"/g, '""'); const cleanKeywords = (item.Keywords || '').replace(/"/g, '""'); return `"${item.Filename}","${cleanTitle}","${cleanKeywords}","${item['Generated by AI']}"`; }); return header + rows.join('\n'); }
     function renderNicheManagementList() { if (!nicheManagementList) return; nicheManagementList.innerHTML = ''; Object.keys(niches).sort().forEach(mainNiche => { const mainItem = document.createElement('div'); mainItem.className = 'niche-item'; mainItem.innerHTML = `<span>${mainNiche}</span><button class="delete-niche-btn" data-main-niche="${mainNiche}">&times;</button>`; nicheManagementList.appendChild(mainItem); if (niches[mainNiche] && niches[mainNiche].length > 0) { [...niches[mainNiche]].sort().forEach(subNiche => { const subItem = document.createElement('div'); subItem.className = 'sub-niche-item'; subItem.innerHTML = `<span><span class="sub-niche-icon">›</span>${subNiche}</span><button class="delete-niche-btn" data-main-niche="${mainNiche}" data-sub-niche="${subNiche}">&times;</button>`; nicheManagementList.appendChild(subItem); }); } }); }
@@ -75,6 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (randomBtn) { randomBtn.addEventListener("click", async () => { if (output) output.textContent = "Generating..."; setButtonsState(true); const mains = Object.keys(niches); const main = mains[Math.floor(Math.random() * mains.length)]; const subs = niches[main]; const sub = subs[Math.floor(Math.random() * subs.length)]; await generateSinglePrompt(sub); setButtonsState(false); }); }
     if (startSessionBtn) { startSessionBtn.addEventListener("click", () => { if (output && output.textContent && !output.textContent.startsWith("Hasil prompt")) { setActivePrompt(output.textContent); const screeningTabBtn = document.querySelector('.main-tab-button[data-tab="production-queue"]'); if (screeningTabBtn) screeningTabBtn.click(); } else { showNotification("Generate sebuah prompt terlebih dahulu."); } }); }
     if (copyBtn) { copyBtn.addEventListener("click", () => { if (!currentPrompt) return; navigator.clipboard.writeText(currentPrompt).then(() => showNotification("Prompt disalin!")); }); }
+    if (copyNegativeBtn) { copyNegativeBtn.addEventListener('click', () => { if (!negativePromptText) return; navigator.clipboard.writeText(negativePromptText).then(() => showNotification("Negative prompt disalin!")); }); }
     if (favBtn) { favBtn.addEventListener("click", () => { if (!currentPrompt || currentPrompt.startsWith('Error:')) return; addToFavorite(currentPrompt); }); }
     if (saveApiKeyBtn && apiKeyInput) { saveApiKeyBtn.addEventListener('click', () => { const key = apiKeyInput.value.trim(); if (key) { window.api.saveApiKey(key); showNotification("API Key berhasil disimpan!"); } else { showNotification("Harap masukkan API Key."); } }); }
     if (manageNichesBtn) { manageNichesBtn.addEventListener('click', () => { populateNicheModalDropdown(); renderNicheManagementList(); if (nicheModal) nicheModal.showModal(); }); }
