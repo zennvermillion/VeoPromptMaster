@@ -1,7 +1,7 @@
 {
   "name": "veo-prompt-master",
-  "version": "2.3.1",
-  "productName": "Veo Prompt Master v2.3.1",
+  "version": "2.3.2",
+  "productName": "Veo Prompt Master",
   "description": "A tool to generate cinematic prompts for AI video",
   "author": "Zenn Vermillion",
   "main": "main.js",
