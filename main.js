@@ -10,8 +10,19 @@ let watcher = null;
 let mainWindow;
 
 function createWindow() {
-    mainWindow = new BrowserWindow({ width: 1280, height: 800, webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, nodeIntegration: false } });
+    mainWindow = new BrowserWindow({
+        width: 1280,
+        height: 800,
+        title: "Veo Prompt Master", // <-- TAMBAHKAN BARIS INI
+        webPreferences: {
+            preload: path.join(__dirname, "preload.js"),
+            contextIsolation: true,
+            nodeIntegration: false,
+        },
+    });
+
     mainWindow.loadFile("index.html");
+
     mainWindow.webContents.on('did-finish-load', () => {
         const watchedFolderPath = store.get('watchedFolderPath');
         if (watchedFolderPath && fs.existsSync(watchedFolderPath)) {
@@ -24,11 +35,21 @@ function startWatching(win, folderPath) {
     if (!win) return;
     win.webContents.send('folder-path-changed', folderPath);
     if (watcher) { watcher.close(); }
-    watcher = chokidar.watch(folderPath, { ignored: /(^|[\/\\])\../, persistent: true, depth: 0, ignoreInitial: true });
+    
+    watcher = chokidar.watch(folderPath, {
+        ignored: /(^|[\/\\])\../,
+        persistent: true,
+        depth: 0,
+        ignoreInitial: true,
+    });
+
     watcher.on('add', (filePath) => {
         const extension = path.extname(filePath).toLowerCase();
         if (['.mp4', '.mov', '.avi'].includes(extension)) {
-            win.webContents.send('new-video-found', { name: path.basename(filePath), path: filePath });
+            win.webContents.send('new-video-found', {
+                name: path.basename(filePath),
+                path: filePath
+            });
         }
     });
 }
@@ -60,7 +81,9 @@ ipcMain.handle('save-csv', async (event, csvData) => {
         try {
             fs.writeFileSync(filePath, csvData, 'utf-8');
             return { success: true };
-        } catch (err) { return { success: false, error: err.message }; }
+        } catch (err) {
+            return { success: false, error: err.message };
+        }
     }
     return { success: false, canceled: true };
 });
@@ -68,14 +91,12 @@ ipcMain.handle('save-csv', async (event, csvData) => {
 ipcMain.handle("generate-prompt", async (event, { sub }) => {
     const GEMINI_API_KEY = store.get('geminiApiKey');
     if (!GEMINI_API_KEY) return { error: "Kunci API belum diatur." };
-
+    
     const promptText = `
     Based on the sub-category "${sub}", create a detailed, cinematic 8-second video prompt.
-
     Your response MUST be a valid JSON object with two keys:
     1. "prompt": A string containing the full, detailed video prompt in a single flowing paragraph.
     2. "negative_prompt": An array of 10-15 relevant negative keywords to avoid common AI artifacts for this specific prompt (e.g., "blurry", "deformed", "watermark", "text").
-
     Do not include any text outside of the JSON object.
     `;
     
@@ -91,13 +112,23 @@ ipcMain.handle("generate-prompt", async (event, { sub }) => {
     }
 });
 
-// NAMA HANDLER DIPERBAIKI DI SINI
-ipcMain.handle('generate-metadata-and-csv', async (event, { videoFilename, videoFilepath, activePrompt }) => {
+// =========================================================================
+// VVV HANDLER INI YANG DIPERBARUI SECARA TOTAL VVV
+// =========================================================================
+ipcMain.handle('generate-metadata-and-csv', async (event, { videoFilename, activePrompt }) => {
     const GEMINI_API_KEY = store.get('geminiApiKey');
     if (!GEMINI_API_KEY) return { error: "Kunci API Gemini belum diatur." };
-    
-    // 1. Tetap generate Judul dan Keywords seperti biasa
-    const metaPrompt = `Based on the video prompt: "${activePrompt}" and filename: "${videoFilename}", generate metadata. Your response MUST be a valid JSON object with two keys: "title" (a single, complete, flowing sentence without a period at the end) and "keywords" (an array of 40 to 49 relevant keywords).`;
+
+    const metaPrompt = `
+    You are a metadata assistant for stock footage. Based on the following video prompt, generate the required metadata.
+    PROMPT: "${activePrompt}"
+
+    Your response MUST be a valid JSON object with three keys: "title", "description", and "keywords".
+
+    1.  "title": Create one specific, SEO-friendly title under 200 characters. It MUST be a complete sentence or a strong phrase. DO NOT use colons (:).
+    2.  "description": Create a short, one-sentence summary of the prompt.
+    3.  "keywords": Create an array of 40 to 49 relevant keywords. IMPORTANT: The keywords array SHOULD NOT include the generated title.
+    `;
     
     const generatedMeta = await generateFromGemini(metaPrompt, GEMINI_API_KEY, "application/json");
     if (generatedMeta.error) return generatedMeta;
@@ -105,25 +136,19 @@ ipcMain.handle('generate-metadata-and-csv', async (event, { videoFilename, video
     try {
         const metaJson = JSON.parse(generatedMeta.text);
         
-        // 2. Lakukan panggilan API KEDUA khusus untuk membuat ringkasan deskripsi
-        const summaryPrompt = `Summarize the following video prompt into a single, concise sentence in English, suitable for a stock media description: "${activePrompt}"`;
-        const summaryResult = await generateFromGemini(summaryPrompt, GEMINI_API_KEY);
-        
-        // 3. Gabungkan ringkasan dengan label
-        const finalDescription = summaryResult.error 
-            ? "Generated by AI" // Fallback jika ringkasan gagal
-            : `${summaryResult.text.replace(/\.$/, '')} - Generated by AI`; // Hapus titik jika ada
+        const finalTitle = (metaJson.title || "").replace(/\.$/, '').trim();
+        const finalKeywords = metaJson.keywords || [];
+        const finalDescription = `${(metaJson.description || "").replace(/\.$/, '').trim()} - Generated by AI`;
 
         return { 
             success: true, 
-            title: metaJson.title || "", 
-            keywords: (metaJson.keywords || []).join(', '),
-            description: finalDescription // Kembalikan deskripsi yang sudah diringkas
+            title: finalTitle, 
+            keywords: finalKeywords.join(', '),
+            description: finalDescription
         };
-
     } catch (err) {
         console.error("Error processing metadata:", err);
-        return { error: "Failed to parse AI response or create summary." };
+        return { error: "Gagal mem-parse respons dari AI." };
     }
 });
 
@@ -132,11 +157,20 @@ async function generateFromGemini(promptText, apiKey, responseMimeType = "text/p
     const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
     try {
         const body = { contents: [{ parts: [{ text: promptText }] }] };
-        if (responseMimeType === "application/json") { body.generationConfig = { response_mime_type: "application/json" }; }
+        if (responseMimeType === "application/json") {
+            body.generationConfig = { response_mime_type: "application/json" };
+        }
         const response = await fetch(GEMINI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-        if (!response.ok) { const err = await response.json(); return { error: err.error ? err.error.message : 'API Error' }; }
+        if (!response.ok) {
+            const err = await response.json();
+            return { error: err.error ? err.error.message : 'API Error' };
+        }
         const data = await response.json();
-        if (data.candidates && data.candidates.length > 0) return { text: data.candidates[0].content.parts[0].text.trim() };
+        if (data.candidates && data.candidates.length > 0) {
+            return { text: data.candidates[0].content.parts[0].text.trim() };
+        }
         return { error: "No valid response from Gemini" };
-    } catch (err) { return { error: err.message }; }
+    } catch (err) {
+        return { error: err.message };
+    }
 }
