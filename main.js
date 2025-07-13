@@ -1,3 +1,4 @@
+const { autoUpdater } = require('electron-updater');
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs");
@@ -24,6 +25,9 @@ function createWindow() {
     mainWindow.loadFile("index.html");
 
     mainWindow.webContents.on('did-finish-load', () => {
+        // Cek update saat aplikasi selesai dimuat
+        autoUpdater.checkForUpdatesAndNotify();
+    
         const watchedFolderPath = store.get('watchedFolderPath');
         if (watchedFolderPath && fs.existsSync(watchedFolderPath)) {
             startWatching(mainWindow, watchedFolderPath);
