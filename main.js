@@ -88,6 +88,31 @@ ipcMain.handle('save-csv', async (event, csvData) => {
     return { success: false, canceled: true };
 });
 
+ipcMain.handle('save-batch-prompts-csv', async (event, prompts) => {
+    const { filePath } = await dialog.showSaveDialog({
+        title: 'Simpan Hasil Batch Prompt',
+        defaultPath: `veo_batch_prompts_${Date.now()}.csv`,
+        filters: [{ name: 'CSV Files', extensions: ['csv'] }]
+    });
+
+    if (filePath) {
+        try {
+            const header = '"prompt","negative_prompt"\n';
+            const rows = prompts.map(p => {
+                const promptCsv = `"${p.prompt.replace(/"/g, '""')}"`;
+                const negativeCsv = `"${p.negative_prompt.join(', ').replace(/"/g, '""')}"`;
+                return `${promptCsv},${negativeCsv}`;
+            }).join('\n');
+
+            fs.writeFileSync(filePath, header + rows, 'utf-8');
+            return { success: true };
+        } catch (err) {
+            return { success: false, error: err.message };
+        }
+    }
+    return { success: false, canceled: true };
+});
+
 ipcMain.handle("generate-prompt", async (event, { sub }) => {
     const GEMINI_API_KEY = store.get('geminiApiKey');
     if (!GEMINI_API_KEY) return { error: "Kunci API belum diatur." };
@@ -109,6 +134,38 @@ ipcMain.handle("generate-prompt", async (event, { sub }) => {
     } catch (e) {
         console.error("Failed to parse JSON from AI:", result.text);
         return { error: "Gagal mem-parse respons dari AI." };
+    }
+});
+
+ipcMain.handle('generate-batch-prompts', async (event, { sub, count }) => {
+    const GEMINI_API_KEY = store.get('geminiApiKey');
+    if (!GEMINI_API_KEY) return { error: "Kunci API belum diatur." };
+
+    const promptText = `
+    Based on the sub-category "${sub}", create ${count} DIFFERENT and UNIQUE variations of detailed, cinematic 8-second video prompts.
+
+    Your response MUST be a valid JSON object with a single key "prompts".
+    The value of "prompts" MUST be an array of JSON objects.
+    Each object in the array MUST have two keys:
+    1. "prompt": A string containing the full, detailed video prompt in a single flowing paragraph.
+    2. "negative_prompt": An array of 10-15 relevant negative keywords for that specific prompt.
+
+    Do not include any text outside of the main JSON object.
+    `;
+
+    const result = await generateFromGemini(promptText, GEMINI_API_KEY, "application/json");
+    if (result.error) return { error: result.error };
+
+    try {
+        const parsedResult = JSON.parse(result.text);
+        if (parsedResult.prompts && Array.isArray(parsedResult.prompts)) {
+            return { success: true, prompts: parsedResult.prompts };
+        } else {
+            return { error: "Format respons dari AI tidak sesuai (array 'prompts' tidak ditemukan)." };
+        }
+    } catch (e) {
+        console.error("Failed to parse JSON from AI:", result.text);
+        return { error: "Gagal mem-parse respons JSON dari AI." };
     }
 });
 

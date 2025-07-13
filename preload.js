@@ -11,5 +11,9 @@ contextBridge.exposeInMainWorld("api", {
   generatePrompt: ({ sub }) => ipcRenderer.invoke("generate-prompt", { sub }),
   onNewVideo: (callback) => ipcRenderer.on('new-video-found', (_event, value) => callback(value)),
   generateMetadataAndCsv: (payload) => ipcRenderer.invoke('generate-metadata-and-csv', payload),
-  saveCsv: (csvData) => ipcRenderer.invoke('save-csv', csvData)
+  saveCsv: (csvData) => ipcRenderer.invoke('save-csv', csvData),
+  generateBatchPrompts: (payload) => ipcRenderer.invoke('generate-batch-prompts', payload),
+
+  // BARIS BARU DITAMBAHKAN DI SINI
+  saveBatchPromptsCsv: (data) => ipcRenderer.invoke('save-batch-prompts-csv', data),
 });

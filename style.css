@@ -82,7 +82,21 @@ button.secondary:hover { background-color: var(--bg-card); border-color: var(--a
 .icon-button svg { width: 18px; height: 18px; display: block; }
 #notif { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: var(--success-color); color: var(--bg-app); padding: 12px 24px; border-radius: 6px; font-weight: 600; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
 #notif.show { opacity: 1; visibility: visible; }
-dialog { width: 800px; max-width: 90vw; border: 1px solid var(--border-color); border-radius: 12px; background-color: var(--card-bg); color: var(--fg-color); padding: 0; }
+dialog {
+    width: 800px;
+    max-width: 90vw;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background-color: var(--bg-sidebar);
+    color: var(--text-primary);
+    padding: 0;
+}
+
+dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
 dialog::backdrop { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
 .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border-color); }
 .close-button { background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; }
@@ -91,7 +105,10 @@ dialog::backdrop { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4
 .niche-management-list { max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; }
 .niche-item, .sub-niche-item { display: flex; justify-content: space-between; padding: 8px; border-radius: 4px; }
 .niche-item { font-weight: 600; }
-.sub-niche-item { padding-left: 24px; font-size: 13px; }
+.niche-item {
+    margin-bottom: 4px; /* Mengurangi jarak ke sub-niche di bawahnya */
+}
+.sub-niche-item { padding: 2px 8px 2px 24px; font-size: 13px; }
 .sub-niche-item span { display: flex; align-items: center; gap: 8px; color: var(--text-primary); }
 .sub-niche-icon { font-size: 16px; color: var(--text-muted); }
 .delete-niche-btn { background: none; border: none; color: var(--error-color); cursor: pointer; font-size: 18px; opacity: 0.5; }
@@ -121,4 +138,21 @@ dialog::backdrop { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4
     border-radius: 6px;
     border: 1px solid var(--border-color);
     margin-bottom: 16px;
+}
+
+#batchCount {
+   /* Menggunakan variabel tema untuk warna font dan latar belakang */
+   color: var(--text-primary); 
+   background-color: var(--bg-input); 
+
+   border: 1px solid var(--border-color);
+   border-radius: 5px;
+   padding: 7px;
+   font-size: 1em;
+   transition: border-color 0.3s ease;
+}
+
+#batchCount:focus {
+   outline: none;
+   border-color: var(--accent-color); 
 }
