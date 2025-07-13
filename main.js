@@ -1,10 +1,14 @@
-const { autoUpdater } = require('electron-updater');
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const fetch = require('node-fetch');
 const Store = require('electron-store');
 const chokidar = require('chokidar');
+const { autoUpdater } = require('electron-updater');
+
+// Konfigurasi logging untuk auto-updater
+autoUpdater.logger = require("electron-log");
+autoUpdater.logger.transports.file.level = "info";
 
 const store = new Store();
 let watcher = null;
@@ -14,7 +18,7 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1280,
         height: 800,
-        title: "Veo Prompt Master", // <-- TAMBAHKAN BARIS INI
+        title: "Veo Prompt Master",
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
             contextIsolation: true,
@@ -26,7 +30,7 @@ function createWindow() {
 
     mainWindow.webContents.on('did-finish-load', () => {
         // Cek update saat aplikasi selesai dimuat
-        autoUpdater.checkForUpdatesAndNotify();
+        autoUpdater.checkForUpdates();
     
         const watchedFolderPath = store.get('watchedFolderPath');
         if (watchedFolderPath && fs.existsSync(watchedFolderPath)) {
@@ -57,6 +61,18 @@ function startWatching(win, folderPath) {
         }
     });
 }
+// --- Event Listener Auto-Updater ---
+autoUpdater.on('update-available', () => {
+  mainWindow.webContents.send('update_available');
+});
+
+autoUpdater.on('update-downloaded', () => {
+  mainWindow.webContents.send('update_downloaded');
+});
+
+ipcMain.on('restart_app', () => {
+  autoUpdater.quitAndInstall();
+});
 
 app.whenReady().then(createWindow);
 app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit(); });

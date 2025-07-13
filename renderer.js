@@ -16,7 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainNicheSelect=getEl("mainNiche"), subNicheSelect=getEl("subNiche"), generateBtn=getEl("generateBtn"), output=getEl("output"), copyBtn=getEl("copyBtn"), favBtn=getEl("favBtn"), historyListEl=getEl("historyList"), favoriteListEl=getEl("favoriteList"), modeToggle=getEl("modeToggle"), notif=getEl("notif"), apiKeyInput=getEl("apiKeyInput"), saveApiKeyBtn=getEl("saveApiKeyBtn"), startSessionBtn=getEl("startSessionBtn"), manageNichesBtn=getEl("manageNichesBtn"), nicheModal=getEl("nicheModal"), closeNicheModal=getEl("closeNicheModal"), newMainNicheInput=getEl("newMainNicheInput"), addMainNicheBtn=getEl("addMainNicheBtn"), mainNicheSelectForNewSub=getEl("mainNicheSelectForNewSub"), newSubNicheInput=getEl("newSubNicheInput"), addSubNicheBtn=getEl("addSubNicheBtn"), nicheManagementList=getEl("nicheManagementList"), appVersionEl=getEl("appVersion"), modalNotif=getEl("modalNotif"), negativePromptSection = getEl("negativePromptSection"), negativePromptOutput = getEl("negativePromptOutput"), copyNegativeBtn = getEl("copyNegativeBtn");
     const generateBatchBtn = getEl("generateBatchBtn"), batchCountInput = getEl("batchCount"), batchResultList = getEl("batchResultList"), exportBatchResultsBtn = getEl("exportBatchResultsBtn");
     const tabButtons = document.querySelectorAll(".main-tab-button"), tabContents = document.querySelectorAll(".tab-content");
-    
+    const updateNotification = getEl('update-notification');
+    const restartBtn = getEl('restart-btn');
+
     // --- State Aplikasi ---
     let currentPrompt = "", negativePromptText = "", currentBatchResults = [];
     let historyData = [], favoriteData = [], niches = {};
@@ -200,4 +202,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     initializeApp();
+    // --- Listener untuk Notifikasi Auto-Update (Versi dengan Tombol) ---
+    window.api.onUpdateAvailable(() => {
+        showNotification("Update ditemukan! Mengunduh di latar belakang...");
+    });
+
+    window.api.onUpdateDownloaded(() => {
+        // Alih-alih notifikasi sementara, kita tampilkan bar permanen
+        if (updateNotification) updateNotification.hidden = false;
+    });
+
+    // Tambahkan event listener untuk tombol restart
+    if (restartBtn) {
+        restartBtn.addEventListener('click', () => {
+            window.api.restartApp();
+        });
+    }
 });

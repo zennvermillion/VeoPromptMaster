@@ -16,4 +16,7 @@ contextBridge.exposeInMainWorld("api", {
 
   // BARIS BARU DITAMBAHKAN DI SINI
   saveBatchPromptsCsv: (data) => ipcRenderer.invoke('save-batch-prompts-csv', data),
+  onUpdateAvailable: (callback) => ipcRenderer.on('update_available', callback),
+  onUpdateDownloaded: (callback) => ipcRenderer.on('update_downloaded', callback),
+  restartApp: () => ipcRenderer.send('restart_app'),
 });

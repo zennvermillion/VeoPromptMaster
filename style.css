@@ -156,3 +156,25 @@ dialog::backdrop { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4
    outline: none;
    border-color: var(--accent-color); 
 }
+
+/* --- Styling untuk Notifikasi Update --- */
+.notification-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--accent-color);
+    color: white;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    z-index: 2000;
+}
+
+.notification-bar button {
+    background-color: #fff;
+    color: var(--accent-color);
+    font-weight: 700;
+}
