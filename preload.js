@@ -15,8 +15,9 @@ contextBridge.exposeInMainWorld("api", {
   generateBatchPrompts: (payload) => ipcRenderer.invoke('generate-batch-prompts', payload),
   saveBatchPromptsCsv: (data) => ipcRenderer.invoke('save-batch-prompts-csv', data),
 
-  // Jembatan untuk Auto-Update
   onUpdateAvailable: (callback) => ipcRenderer.on('update_available', (_event) => callback()),
+  onUpdateDownloadStart: (callback) => ipcRenderer.on('update_download_start', (_event) => callback()),
+  onDownloadProgress: (callback) => ipcRenderer.on('download_progress', (_event, value) => callback(value)),
   onUpdateDownloaded: (callback) => ipcRenderer.on('update_downloaded', (_event) => callback()),
   restartApp: () => ipcRenderer.send('restart_app'),
 });

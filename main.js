@@ -7,9 +7,9 @@ const chokidar = require('chokidar');
 const { autoUpdater } = require("electron-updater");
 const log = require("electron-log");
 
-// Konfigurasi logging untuk auto-updater
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";
+autoUpdater.autoDownload = false; // PENTING: Jangan unduh otomatis
 
 const store = new Store();
 let watcher = null;
@@ -39,40 +39,31 @@ function createWindow() {
     });
 }
 
-// --- Event Listener Auto-Updater (Versi Lengkap) ---
-autoUpdater.on('checking-for-update', () => {
-  log.info('Checking for update...');
-})
+// --- Event Listener Auto-Updater (Versi Lengkap & Interaktif) ---
 autoUpdater.on('update-available', (info) => {
-  log.info('Update available.', info);
-  mainWindow.webContents.send('update_available');
+    log.info('Update available.');
+    dialog.showMessageBox({
+        type: 'info',
+        title: 'Update Ditemukan',
+        message: `Versi baru ${info.version} telah tersedia. Apakah Anda ingin mengunduhnya sekarang?`,
+        buttons: ['Ya, Unduh Sekarang', 'Nanti Saja']
+    }).then(result => {
+        if (result.response === 0) {
+            log.info('User chose to download update.');
+            mainWindow.webContents.send('update_download_start');
+            autoUpdater.downloadUpdate();
+        }
+    });
 });
-autoUpdater.on('update-not-available', (info) => {
-  log.info('Update not available.', info);
-})
-autoUpdater.on('error', (err) => {
-  log.error('Error in auto-updater. ' + err);
-})
 autoUpdater.on('download-progress', (progressObj) => {
-  let log_message = "Download speed: " + progressObj.bytesPerSecond;
-  log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
-  log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
-  log.info(log_message);
-})
-autoUpdater.on('update-downloaded', (info) => {
-  log.info('Update downloaded.', info);
-  mainWindow.webContents.send('update_downloaded');
+    mainWindow.webContents.send('download_progress', progressObj.percent);
 });
-
-// Event listener untuk memastikan aplikasi benar-benar quit sebelum install
-autoUpdater.on('before-quit-for-update', () => {
-    // Di sini Anda bisa menyimpan state aplikasi jika perlu
-    log.info('Before quit for update, preparing to close...');
+autoUpdater.on('update-downloaded', () => {
+    log.info('Update downloaded.');
+    mainWindow.webContents.send('update_downloaded');
 });
-
 ipcMain.on('restart_app', () => {
-  log.info('Restart app signal received, calling quitAndInstall.');
-  autoUpdater.quitAndInstall();
+    autoUpdater.quitAndInstall(true, true); // true, true akan memaksa quit dan run setelah install
 });
 
 function startWatching(win, folderPath) {

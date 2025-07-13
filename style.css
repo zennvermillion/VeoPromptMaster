@@ -157,24 +157,26 @@ dialog::backdrop { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4
    border-color: var(--accent-color); 
 }
 
-/* --- Styling untuk Notifikasi Update --- */
-.notification-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+/* --- Styling untuk Notifikasi Update di Atas --- */
+.update-bar {
+    padding: 10px 15px;
     background-color: var(--accent-color);
     color: white;
-    padding: 12px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-radius: 8px;
+    margin-bottom: 16px; /* Memberi jarak ke tab di bawahnya */
     font-weight: 600;
-    z-index: 2000;
 }
 
-.notification-bar button {
+.update-bar .progress-bar {
+    background-color: var(--success-color);
+}
+
+.update-bar button {
     background-color: #fff;
     color: var(--accent-color);
     font-weight: 700;
+    padding: 8px 12px;
 }

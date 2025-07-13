@@ -91,9 +91,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (nicheManagementList) { nicheManagementList.addEventListener('click', (e) => { if (e.target.classList.contains('delete-niche-btn')) { if (confirm('Yakin ingin menghapus item ini?')) { const main = e.target.dataset.mainNiche; const sub = e.target.dataset.subNiche; if (main && sub) { const index = niches[main].indexOf(sub); if (index > -1) niches[main].splice(index, 1); } else if (main) { delete niches[main]; } handleNicheUpdate(); } } }); }
     
     // --- Listener untuk Auto-Update ---
-    window.api.onUpdateAvailable(() => { showNotification("Update ditemukan! Mengunduh di latar belakang..."); });
-    window.api.onUpdateDownloaded(() => { if (updateNotification) updateNotification.hidden = false; });
-    if (restartBtn) { restartBtn.addEventListener('click', () => window.api.restartApp()); }
+    const updateMessage = getEl('update-message');
+    const downloadProgressContainer = getEl('download-progress-container');
+    const downloadProgressBar = getEl('download-progress-bar');
+
+    window.api.onUpdateDownloadStart(() => {
+        if (updateNotification) updateNotification.hidden = false;
+        if (updateMessage) updateMessage.textContent = 'Mengunduh update...';
+        if (downloadProgressContainer) downloadProgressContainer.hidden = false;
+    });
+
+    window.api.onDownloadProgress((percent) => {
+        if (downloadProgressBar) downloadProgressBar.style.width = `${percent}%`;
+    });
+
+    window.api.onUpdateDownloaded(() => {
+        if (updateMessage) updateMessage.textContent = 'Update baru telah siap!';
+        if (downloadProgressContainer) downloadProgressContainer.hidden = true;
+        if (restartBtn) restartBtn.hidden = false;
+    });
+    
+    if (restartBtn) {
+        restartBtn.addEventListener('click', () => {
+            restartBtn.textContent = 'Restarting...';
+            window.api.restartApp();
+        });
+    }
 
     initializeApp();
 });
