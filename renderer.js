@@ -13,33 +13,27 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- Deklarasi Elemen ---
     const getEl = (id) => document.getElementById(id);
-    const mainNicheSelect=getEl("mainNiche"), subNicheSelect=getEl("subNiche"), generateBtn=getEl("generateBtn"), output=getEl("output"), copyBtn=getEl("copyBtn"), favBtn=getEl("favBtn"), historyListEl=getEl("historyList"), favoriteListEl=getEl("favoriteList"), modeToggle=getEl("modeToggle"), notif=getEl("notif"), apiKeyInput=getEl("apiKeyInput"), saveApiKeyBtn=getEl("saveApiKeyBtn"), startSessionBtn=getEl("startSessionBtn"), manageNichesBtn=getEl("manageNichesBtn"), nicheModal=getEl("nicheModal"), closeNicheModal=getEl("closeNicheModal"), newMainNicheInput=getEl("newMainNicheInput"), addMainNicheBtn=getEl("addMainNicheBtn"), mainNicheSelectForNewSub=getEl("mainNicheSelectForNewSub"), newSubNicheInput=getEl("newSubNicheInput"), addSubNicheBtn=getEl("addSubNicheBtn"), nicheManagementList=getEl("nicheManagementList"), appVersionEl=getEl("appVersion"), modalNotif=getEl("modalNotif"), negativePromptSection = getEl("negativePromptSection"), negativePromptOutput = getEl("negativePromptOutput"), copyNegativeBtn = getEl("copyNegativeBtn");
+    const mainNicheSelect=getEl("mainNiche"), subNicheSelect=getEl("subNiche"), generateBtn=getEl("generateBtn"), output=getEl("output"), copyBtn=getEl("copyBtn"), favBtn=getEl("favBtn"), historyListEl=getEl("historyList"), favoriteListEl=getEl("favoriteList"), modeToggle=getEl("modeToggle"), notif=getEl("notif"), apiKeyInput=getEl("apiKeyInput"), saveApiKeyBtn=getEl("saveApiKeyBtn"), startSessionBtn=getEl("startSessionBtn"), manageNichesBtn=getEl("manageNichesBtn"), nicheModal=getEl("nicheModal"), closeNicheModal=getEl("closeNicheModal"), newMainNicheInput=getEl("newMainNicheInput"), addMainNicheBtn=getEl("addMainNicheBtn"), mainNicheSelectForNewSub=getEl("mainNicheSelectForNewSub"), newSubNicheInput=getEl("newSubNicheInput"), addSubNicheBtn=getEl("addSubNicheBtn"), nicheManagementList=getEl("nicheManagementList"), appVersionEl=getEl("appVersion"), modalNotif=getEl("modalNotif"), exportCounter=getEl("exportCounter"), progressBar=getEl("progressBar"), exportCsvBtn=getEl("exportCsvBtn"), clearBatchBtn=getEl("clearBatchBtn"), selectFolderBtn = getEl("selectFolderBtn"), watchedFolderPathEl = getEl("watchedFolderPath"), productionQueueEl = getEl("productionQueue"), activePromptDisplay = getEl("activePromptDisplay"), negativePromptSection = getEl("negativePromptSection"), negativePromptOutput = getEl("negativePromptOutput"), copyNegativeBtn = getEl("copyNegativeBtn");
     const generateBatchBtn = getEl("generateBatchBtn"), batchCountInput = getEl("batchCount"), batchResultList = getEl("batchResultList"), exportBatchResultsBtn = getEl("exportBatchResultsBtn");
+    const updateNotification = getEl('update-notification'), restartBtn = getEl('restart-btn');
     const tabButtons = document.querySelectorAll(".main-tab-button"), tabContents = document.querySelectorAll(".tab-content");
-    const updateNotification = getEl('update-notification');
-    const restartBtn = getEl('restart-btn');
-
+    
     // --- State Aplikasi ---
-    let currentPrompt = "", negativePromptText = "", currentBatchResults = [];
-    let historyData = [], favoriteData = [], niches = {};
+    let activePrompt = "", currentPrompt = "", negativePromptText = "", currentBatchResults = [];
+    let historyData = [], favoriteData = [], metadataBatch = [], niches = {};
+    const BATCH_GOAL = 25;
     const defaultNiches = { "💫 Abstract & Motion": ["Glowing particle symphony"], "🌿 Nature & Landscape": ["Fog rolling over mountain ridge at dawn"]};
     
-    // --- Fungsi Bantuan ---
+    // --- FUNGSI BANTUAN (LENGKAP) ---
     function showNotification(text) { if(notif) { notif.textContent = text; notif.classList.add('show'); setTimeout(() => notif.classList.remove('show'), 2500); } }
     function setButtonsState(isLoading) { if (generateBtn) generateBtn.disabled = isLoading; if (generateBatchBtn) generateBatchBtn.disabled = isLoading; }
     function applyMode(theme) { document.documentElement.setAttribute("data-theme", theme); if (modeToggle) { modeToggle.innerHTML = theme === 'light' ? ICONS.moon : ICONS.sun; } }
     async function loadAppVersion() { if (appVersionEl) { const version = await window.api.getAppVersion(); appVersionEl.textContent = `v${version}`; } }
     async function loadInitialApiKey() { const savedKey = await window.api.getApiKey(); if (apiKeyInput && savedKey) { apiKeyInput.value = savedKey; } }
     async function saveNiches() { await window.api.saveUserNiches(niches); }
-    function setActivePrompt(prompt) {
-        activePrompt = prompt;
-        if(activePromptDisplay) {
-            activePromptDisplay.innerHTML = `Sesi Aktif: <span class="prompt-text">${prompt.substring(0, 70)}...</span>`;
-            activePromptDisplay.hidden = false;
-        }
-        showNotification("Prompt Aktif ditetapkan. Pindah ke Production Queue.");
-    }
-    function renderList(tab, data) { const listContainer = getEl(`${tab}List`); if (!listContainer) return; listContainer.innerHTML = ''; if (data.length === 0) { listContainer.innerHTML = `<div class="list-item"><span class="prompt-text">Belum ada data.</span></div>`; return; } data.slice().reverse().forEach(item => { const promptText = (typeof item === 'object') ? item.prompt : item; if(!promptText) return; const div = document.createElement("div"); div.className = 'list-item'; const textSpan = document.createElement('span'); textSpan.className = 'prompt-text'; textSpan.textContent = promptText; textSpan.title = promptText; textSpan.addEventListener("click", () => { output.textContent = promptText; currentPrompt = promptText; copyBtn.disabled = false; favBtn.disabled = favoriteData.includes(promptText); negativePromptSection.hidden = true; }); const actionsDiv = document.createElement('div'); actionsDiv.className = 'action-icons'; if (tab === 'history') { const favBtnIcon = document.createElement('button'); favBtnIcon.className = 'icon-button'; favBtnIcon.title = 'Tambah ke Favorite'; favBtnIcon.innerHTML = ICONS.favorite; favBtnIcon.addEventListener('click', () => addToFavorite(promptText)); actionsDiv.appendChild(favBtnIcon); } else { const delBtn = document.createElement("button"); delBtn.className = 'icon-button'; delBtn.title = "Hapus dari Favorite"; delBtn.innerHTML = ICONS.trash; delBtn.addEventListener('click', () => removeFavorite(promptText)); actionsDiv.appendChild(delBtn); } div.appendChild(textSpan); div.appendChild(actionsDiv); listContainer.appendChild(div); });}
+    function setActivePrompt(prompt) { activePrompt = prompt; if(activePromptDisplay) { activePromptDisplay.innerHTML = `Sesi Aktif: <span class="prompt-text">${prompt.substring(0, 70)}...</span>`; activePromptDisplay.hidden = false; } showNotification("Prompt Aktif ditetapkan. Pindah ke Production Queue."); }
+    function updateExportUI() { if(!exportCounter || !progressBar || !exportCsvBtn || !clearBatchBtn) return; const count = metadataBatch.length; exportCounter.textContent = `${count}/${BATCH_GOAL}`; progressBar.style.width = `${(count / BATCH_GOAL) * 100}%`; exportCsvBtn.disabled = count === 0; clearBatchBtn.disabled = count === 0; }
+    function renderList(tab, data) { const listContainer = getEl(`${tab}List`); if (!listContainer) return; listContainer.innerHTML = ''; if (data.length === 0) { listContainer.innerHTML = `<div class="list-item"><span class="prompt-text">Belum ada data.</span></div>`; return; } data.slice().reverse().forEach(item => { const promptText = (typeof item === 'object') ? item.prompt : item; if(!promptText) return; const div = document.createElement("div"); div.className = 'list-item'; const textSpan = document.createElement('span'); textSpan.className = 'prompt-text'; textSpan.textContent = promptText; textSpan.title = promptText; textSpan.addEventListener("click", () => { output.textContent = promptText; currentPrompt = promptText; copyBtn.disabled = false; favBtn.disabled = favoriteData.includes(promptText); negativePromptSection.hidden = true; }); const actionsDiv = document.createElement('div'); actionsDiv.className = 'action-icons'; const reuseBtn = document.createElement('button'); reuseBtn.className = 'icon-button'; reuseBtn.title = 'Reuse Prompt'; reuseBtn.innerHTML = ICONS.reuse; reuseBtn.addEventListener('click', () => { setActivePrompt(promptText); const queueTabBtn = document.querySelector('.main-tab-button[data-tab="production-queue"]'); if (queueTabBtn) queueTabBtn.click(); }); actionsDiv.appendChild(reuseBtn); if (tab === 'history') { const favBtnIcon = document.createElement('button'); favBtnIcon.className = 'icon-button'; favBtnIcon.title = 'Tambah ke Favorite'; favBtnIcon.innerHTML = ICONS.favorite; favBtnIcon.addEventListener('click', () => addToFavorite(promptText)); actionsDiv.appendChild(favBtnIcon); } else { const delBtn = document.createElement("button"); delBtn.className = 'icon-button'; delBtn.title = "Hapus dari Favorite"; delBtn.innerHTML = ICONS.trash; delBtn.addEventListener('click', () => removeFavorite(promptText)); actionsDiv.appendChild(delBtn); } div.appendChild(textSpan); div.appendChild(actionsDiv); listContainer.appendChild(div); });}
     function addToHistory(historyObject) { if (!historyObject || !historyObject.prompt) return; if (historyData.some(item => item.prompt === historyObject.prompt)) return; historyData.push(historyObject); if (historyData.length > 50) historyData.shift(); localStorage.setItem("veoPromptHistory_v3", JSON.stringify(historyData)); }
     function addToFavorite(prompt) { if (!prompt || favoriteData.includes(prompt)) return; favoriteData.push(prompt); localStorage.setItem("veoPromptFavorites_v2", JSON.stringify(favoriteData)); showNotification("Ditambahkan ke favorit!"); renderList('favorite', favoriteData); if (favBtn) favBtn.disabled = true; }
     function removeFavorite(prompt) { favoriteData = favoriteData.filter(fav => fav !== prompt); localStorage.setItem("veoPromptFavorites_v2", JSON.stringify(favoriteData)); showNotification("Dihapus dari favorit."); renderList('favorite', favoriteData); }
@@ -50,32 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function showModalNotification(text) { if (!modalNotif) return; modalNotif.textContent = text; modalNotif.classList.add('show'); setTimeout(() => modalNotif.classList.remove('show'), 2000); }
 
     // --- Fungsi Inti ---
-    async function generateSinglePrompt(sub) { 
-        try { 
-            setButtonsState(true); 
-            const result = await window.api.generatePrompt({ sub }); 
-            if (result.error) throw new Error(result.error); 
-            if(result.success) {
-                currentPrompt = result.prompt;
-                negativePromptText = Array.isArray(result.negative_prompt) ? result.negative_prompt.join(', ') : '';
-                if (output) output.textContent = currentPrompt;
-                if (negativePromptOutput) negativePromptOutput.textContent = negativePromptText;
-                if (negativePromptSection) negativePromptSection.hidden = false;
-                
-                // >>> TAMBAHKAN BARIS INI UNTUK MEMPERBAIKI <<<
-                if (metadataSection) metadataSection.hidden = false;
-
-                if (copyBtn) copyBtn.disabled = false;
-                if (favBtn) favBtn.disabled = favoriteData.includes(currentPrompt);
-                addToHistory({ subNiche: sub, prompt: currentPrompt, negative_prompt: result.negative_prompt });
-            } else { throw new Error("Respons AI tidak valid."); } 
-        } catch (err) { 
-            output.textContent = `Error: ${err.message}`; 
-        } finally { 
-            setButtonsState(false); 
-        } 
-    }
-    function displayBatchResults(prompts) { if (!batchResultList) return; currentBatchResults = prompts; batchResultList.innerHTML = ''; if (!prompts || prompts.length === 0) { batchResultList.innerHTML = `<div class="empty-queue">Tidak ada hasil.</div>`; exportBatchResultsBtn.disabled = true; return; } exportBatchResultsBtn.disabled = false; prompts.forEach(item => { const promptText = item.prompt; const div = document.createElement("div"); div.className = 'list-item'; const textSpan = document.createElement('span'); textSpan.className = 'prompt-text'; textSpan.textContent = promptText; textSpan.title = promptText; textSpan.addEventListener("click", () => { output.textContent = promptText; currentPrompt = promptText; negativePromptText = Array.isArray(item.negative_prompt) ? item.negative_prompt.join(', ') : ''; negativePromptOutput.textContent = negativePromptText; negativePromptSection.hidden = false; copyBtn.disabled = false; favBtn.disabled = favoriteData.includes(promptText); const generatorTabBtn = document.querySelector('.main-tab-button[data-tab="generator"]'); if(generatorTabBtn) generatorTabBtn.click(); showNotification("Prompt dimuat ke generator."); }); const actionsDiv = document.createElement('div'); actionsDiv.className = 'action-icons'; const copyBtnIcon = document.createElement('button'); copyBtnIcon.className = 'icon-button'; copyBtnIcon.title = 'Salin'; copyBtnIcon.innerHTML = ICONS.copy; copyBtnIcon.addEventListener('click', () => { navigator.clipboard.writeText(promptText).then(() => showNotification("Prompt disalin!")); }); const favBtnIcon = document.createElement('button'); favBtnIcon.className = 'icon-button'; favBtnIcon.title = 'Tambah ke Favorite'; favBtnIcon.innerHTML = ICONS.favorite; favBtnIcon.addEventListener('click', () => addToFavorite(promptText)); actionsDiv.appendChild(copyBtnIcon); actionsDiv.appendChild(favBtnIcon); div.appendChild(textSpan); div.appendChild(actionsDiv); batchResultList.appendChild(div); }); }
+    async function generateSinglePrompt(sub) { try { setButtonsState(true); const result = await window.api.generatePrompt({ sub }); if (result.error) throw new Error(result.error); if(result.success) { currentPrompt = result.prompt; negativePromptText = Array.isArray(result.negative_prompt) ? result.negative_prompt.join(', ') : ''; output.textContent = currentPrompt; negativePromptOutput.textContent = negativePromptText; negativePromptSection.hidden = false; metadataSection.hidden = false; copyBtn.disabled = false; favBtn.disabled = favoriteData.includes(currentPrompt); addToHistory({ subNiche: sub, prompt: currentPrompt, negative_prompt: result.negative_prompt }); } else { throw new Error("Respons AI tidak valid."); } } catch (err) { output.textContent = `Error: ${err.message}`; } finally { setButtonsState(false); } }
+    const displayBatchResults = (prompts) => { if (!batchResultList) return; currentBatchResults = prompts; batchResultList.innerHTML = ''; if (!prompts || prompts.length === 0) { batchResultList.innerHTML = `<div class="empty-queue">Tidak ada hasil.</div>`; exportBatchResultsBtn.disabled = true; return; } exportBatchResultsBtn.disabled = false; prompts.forEach(item => { const promptText = item.prompt; const div = document.createElement("div"); div.className = 'list-item'; const textSpan = document.createElement('span'); textSpan.className = 'prompt-text'; textSpan.textContent = promptText; textSpan.title = promptText; textSpan.addEventListener("click", () => { output.textContent = promptText; currentPrompt = promptText; negativePromptText = Array.isArray(item.negative_prompt) ? item.negative_prompt.join(', ') : ''; negativePromptOutput.textContent = negativePromptText; negativePromptSection.hidden = false; metadataSection.hidden = false; copyBtn.disabled = false; favBtn.disabled = favoriteData.includes(promptText); const generatorTabBtn = document.querySelector('.main-tab-button[data-tab="generator"]'); if(generatorTabBtn) generatorTabBtn.click(); showNotification("Prompt dimuat ke generator."); }); const actionsDiv = document.createElement('div'); actionsDiv.className = 'action-icons'; const copyBtnIcon = document.createElement('button'); copyBtnIcon.className = 'icon-button'; copyBtnIcon.title = 'Salin'; copyBtnIcon.innerHTML = ICONS.copy; copyBtnIcon.addEventListener('click', () => { navigator.clipboard.writeText(promptText).then(() => showNotification("Prompt disalin!")); }); const favBtnIcon = document.createElement('button'); favBtnIcon.className = 'icon-button'; favBtnIcon.title = 'Tambah ke Favorite'; favBtnIcon.innerHTML = ICONS.favorite; favBtnIcon.addEventListener('click', () => addToFavorite(promptText)); actionsDiv.appendChild(copyBtnIcon); actionsDiv.appendChild(favBtnIcon); div.appendChild(textSpan); div.appendChild(actionsDiv); batchResultList.appendChild(div); }); };
     
     // --- Inisialisasi ---
     async function initializeApp() {
@@ -83,139 +53,47 @@ document.addEventListener('DOMContentLoaded', () => {
         niches = await window.api.getUserNiches() || defaultNiches;
         if (Object.keys(niches).length === 0) { niches = defaultNiches; await window.api.saveUserNiches(niches); }
         populateMainNiche();
-        
         const savedMode = localStorage.getItem("themeMode") || "dark";
         applyMode(savedMode);
-
         await loadInitialApiKey();
         historyData = JSON.parse(localStorage.getItem("veoPromptHistory_v3") || "[]");
         favoriteData = JSON.parse(localStorage.getItem("veoPromptFavorites_v2") || "[]");
+        metadataBatch = JSON.parse(localStorage.getItem("veoMetadataBatch_v2") || "[]");
         renderList('history', historyData);
         renderList('favorite', favoriteData);
+        updateExportUI();
+        const initialPath = await window.api.getWatchedFolderPath();
+        if(initialPath && watchedFolderPathEl) watchedFolderPathEl.textContent = initialPath;
     }
 
     // --- EVENT LISTENERS ---
     if (mainNicheSelect) mainNicheSelect.addEventListener("change", (e) => populateSubNiche(e.target.value));
     if (subNicheSelect) subNicheSelect.addEventListener("change", () => { const hasValue = !!subNicheSelect.value; generateBtn.disabled = !hasValue; generateBatchBtn.disabled = !hasValue; });
     tabButtons.forEach(button => { button.addEventListener('click', () => { tabButtons.forEach(btn => btn.classList.remove('active')); button.classList.add('active'); const targetId = `${button.dataset.tab}View`; tabContents.forEach(content => { content.classList.toggle('active', content.id === targetId); }); if(button.dataset.tab === 'history' || button.dataset.tab === 'favorite') { renderList(button.dataset.tab, button.dataset.tab === 'history' ? historyData : favoriteData); } }); });
-    
-    if (generateBtn) {
-        generateBtn.addEventListener("click", () => {
-            if (!subNicheSelect.value) return;
-            output.textContent = "Generating..."; // Menampilkan status loading
-            generateSinglePrompt(subNicheSelect.value);
-        });
-    }
+    if (generateBtn) { generateBtn.addEventListener("click", () => { if (!subNicheSelect.value) return; output.textContent = "Generating..."; generateSinglePrompt(subNicheSelect.value); }); }
+    if (generateBatchBtn) { generateBatchBtn.addEventListener('click', async () => { const sub = subNicheSelect.value; const count = parseInt(batchCountInput.value, 10); if (!sub || !count) { showNotification("Pilih sub-kategori dan tentukan jumlah."); return; } setButtonsState(true); showNotification(`Meminta ${count} prompt...`); const batchTabBtn = document.querySelector('.main-tab-button[data-tab="batch-results"]'); if (batchResultList) { batchResultList.innerHTML = `<div class="empty-queue">Meminta ${count} prompt ke AI...</div>`; if(exportBatchResultsBtn) exportBatchResultsBtn.disabled = true; if (batchTabBtn) batchTabBtn.click(); } const result = await window.api.generateBatchPrompts({ sub, count }); setButtonsState(false); if (result.error) { showNotification(`Error: ${result.error}`); if (batchResultList) batchResultList.innerHTML = `<div class="empty-queue">Error: ${result.error}</div>`; } else if (result.success) { displayBatchResults(result.prompts); } }); }
+    if (exportBatchResultsBtn) { exportBatchResultsBtn.addEventListener('click', async () => { if(currentBatchResults.length === 0){ showNotification("Tidak ada data untuk diekspor."); return; } const result = await window.api.saveBatchPromptsCsv(currentBatchResults); if (result.success) { showNotification("File CSV berhasil disimpan!"); } else if (!result.canceled) { showNotification(`Error saat menyimpan: ${result.error}`); } }); }
+    if (saveApiKeyBtn) { saveApiKeyBtn.addEventListener('click', () => { if (apiKeyInput.value.trim()) { window.api.saveApiKey(apiKeyInput.value.trim()); showNotification("API Key berhasil disimpan!"); } else { showNotification("Harap masukkan API Key."); } }); }
+    if (copyBtn) { copyBtn.addEventListener("click", () => { if (!currentPrompt) return; navigator.clipboard.writeText(currentPrompt).then(() => showNotification("Prompt disalin!")); }); }
+    if (copyNegativeBtn) { copyNegativeBtn.addEventListener('click', () => { if (!negativePromptText) return; navigator.clipboard.writeText(negativePromptText).then(() => showNotification("Negative prompt disalin!")); }); }
+    if (favBtn) { favBtn.addEventListener("click", () => { if (!currentPrompt || currentPrompt.startsWith('Error:')) return; addToFavorite(currentPrompt); }); }
+    if (selectFolderBtn) { selectFolderBtn.addEventListener("click", async () => { const path = await window.api.selectFolder(); if(path && watchedFolderPathEl) { watchedFolderPathEl.textContent = path; } }); }
+    if (startSessionBtn) { startSessionBtn.addEventListener("click", () => { if (output && output.textContent && !output.textContent.startsWith("Hasil prompt")) { setActivePrompt(output.textContent); const queueTabBtn = document.querySelector('.main-tab-button[data-tab="production-queue"]'); if (queueTabBtn) queueTabBtn.click(); } else { showNotification("Generate sebuah prompt terlebih dahulu."); } }); }
 
-    if (generateBatchBtn) { 
-        generateBatchBtn.addEventListener('click', async () => { 
-            const sub = subNicheSelect.value; 
-            const count = parseInt(batchCountInput.value, 10); 
-            if (!sub || !count) { showNotification("Pilih sub-kategori dan tentukan jumlah."); return; } 
-            setButtonsState(true); 
-            showNotification(`Meminta ${count} prompt...`); 
-            const batchTabBtn = document.querySelector('.main-tab-button[data-tab="batch-results"]'); 
-            if (batchResultList) { 
-                batchResultList.innerHTML = `<div class="empty-queue">Meminta ${count} prompt ke AI...</div>`; 
-                if(exportBatchResultsBtn) exportBatchResultsBtn.disabled = true; 
-                if (batchTabBtn) batchTabBtn.click(); 
-            } 
-            const result = await window.api.generateBatchPrompts({ sub, count }); 
-            setButtonsState(false); 
-            if (result.error) { 
-                showNotification(`Error: ${result.error}`); 
-                if (batchResultList) batchResultList.innerHTML = `<div class="empty-queue">Error: ${result.error}</div>`; 
-            } else if (result.success) { 
-                displayBatchResults(result.prompts); 
-            } 
-        }); 
-    }
-
-    if (exportBatchResultsBtn) exportBatchResultsBtn.addEventListener('click', async () => { if(currentBatchResults.length === 0){ showNotification("Tidak ada data untuk diekspor."); return; } const result = await window.api.saveBatchPromptsCsv(currentBatchResults); if (result.success) { showNotification("File CSV berhasil disimpan!"); } else if (!result.canceled) { showNotification(`Error saat menyimpan: ${result.error}`); } });
-    if (saveApiKeyBtn) saveApiKeyBtn.addEventListener('click', () => { if (apiKeyInput.value.trim()) { window.api.saveApiKey(apiKeyInput.value.trim()); showNotification("API Key berhasil disimpan!"); } else { showNotification("Harap masukkan API Key."); } });
-    if (copyBtn) copyBtn.addEventListener("click", () => { if (!currentPrompt) return; navigator.clipboard.writeText(currentPrompt).then(() => showNotification("Prompt disalin!")); });
-    if (copyNegativeBtn) copyNegativeBtn.addEventListener('click', () => { if (!negativePromptText) return; navigator.clipboard.writeText(negativePromptText).then(() => showNotification("Negative prompt disalin!")); });
-    if (favBtn) favBtn.addEventListener("click", () => { if (!currentPrompt || currentPrompt.startsWith('Error:')) return; addToFavorite(currentPrompt); });
-    if (startSessionBtn) {
-        startSessionBtn.addEventListener("click", () => {
-            // Cek apakah output sudah berisi prompt sungguhan
-            if (output && output.textContent && !output.textContent.startsWith("Hasil prompt")) {
-                setActivePrompt(output.textContent);
-                // Pindah otomatis ke tab Production Queue
-                const queueTabBtn = document.querySelector('.main-tab-button[data-tab="production-queue"]');
-                if (queueTabBtn) queueTabBtn.click();
-            } else {
-                showNotification("Generate sebuah prompt terlebih dahulu.");
-            }
-        });
-    }
-
-    if (modeToggle) {
-        modeToggle.addEventListener("click", () => {
-            const newTheme = (document.documentElement.getAttribute("data-theme") || "dark") === "dark" ? "light" : "dark";
-            localStorage.setItem("themeMode", newTheme);
-            applyMode(newTheme);
-        });
-    }
-
-    // --- Listener untuk Modal Niche (VERSI STABIL) ---
-    const handleNicheUpdate = async () => {
-        await window.api.saveUserNiches(niches);
-        requestAnimationFrame(() => {
-            const currentMain = mainNicheSelect.value;
-            const currentSub = subNicheSelect.value;
-            populateMainNiche();
-            mainNicheSelect.value = currentMain;
-            populateSubNiche(currentMain);
-            if(niches[currentMain]?.includes(currentSub)) {
-                subNicheSelect.value = currentSub;
-            } else {
-                generateBtn.disabled = true;
-                generateBatchBtn.disabled = true;
-            }
-            renderNicheManagementList();
-            populateNicheModalDropdown();
-        });
-    };
-
+    // --- Listener untuk Mode & Modal Niche ---
+    if (modeToggle) { modeToggle.addEventListener("click", () => { const newTheme = (document.documentElement.getAttribute("data-theme") || "dark") === "dark" ? "light" : "dark"; localStorage.setItem("themeMode", newTheme); applyMode(newTheme); }); }
+    const handleNicheUpdate = async () => { await window.api.saveUserNiches(niches); requestAnimationFrame(() => { const currentMain = mainNicheSelect.value; const currentSub = subNicheSelect.value; populateMainNiche(); mainNicheSelect.value = currentMain; populateSubNiche(currentMain); if(niches[currentMain]?.includes(currentSub)) { subNicheSelect.value = currentSub; } else { generateBtn.disabled = true; generateBatchBtn.disabled = true; } renderNicheManagementList(); populateNicheModalDropdown(); }); };
     if (manageNichesBtn) { manageNichesBtn.addEventListener('click', () => { populateNicheModalDropdown(); renderNicheManagementList(); nicheModal.showModal(); }); }
-    if (closeNicheModal) closeNicheModal.addEventListener('click', () => nicheModal.close());
+    if (closeNicheModal) { closeNicheModal.addEventListener('click', () => nicheModal.close()); }
     if (nicheModal) { nicheModal.addEventListener('click', (e) => { const rect = nicheModal.getBoundingClientRect(); if (e.clientY < rect.top || e.clientY > rect.bottom || e.clientX < rect.left || e.clientX > rect.right) { nicheModal.close(); } }); }
     if (addMainNicheBtn) { addMainNicheBtn.addEventListener('click', () => { const newNiche = newMainNicheInput.value.trim(); if (newNiche && !niches[newNiche]) { niches[newNiche] = []; newMainNicheInput.value = ''; showModalNotification("Kategori utama ditambahkan!"); handleNicheUpdate(); } }); }
     if (addSubNicheBtn) { addSubNicheBtn.addEventListener('click', () => { const selectedMain = mainNicheSelectForNewSub.value; const newSub = newSubNicheInput.value.trim(); if (selectedMain && newSub && !niches[selectedMain].includes(newSub)) { niches[selectedMain].push(newSub); newSubNicheInput.value = ''; showModalNotification("Sub-kategori ditambahkan!"); handleNicheUpdate(); } }); }
-    if (nicheManagementList) {
-        nicheManagementList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('delete-niche-btn')) {
-                if (confirm('Yakin ingin menghapus item ini?')) {
-                    const main = e.target.dataset.mainNiche;
-                    const sub = e.target.dataset.subNiche;
-                    if (main && sub) {
-                        const index = niches[main].indexOf(sub);
-                        if (index > -1) niches[main].splice(index, 1);
-                    } else if (main) {
-                        delete niches[main];
-                    }
-                    handleNicheUpdate();
-                }
-            }
-        });
-    }
+    if (nicheManagementList) { nicheManagementList.addEventListener('click', (e) => { if (e.target.classList.contains('delete-niche-btn')) { if (confirm('Yakin ingin menghapus item ini?')) { const main = e.target.dataset.mainNiche; const sub = e.target.dataset.subNiche; if (main && sub) { const index = niches[main].indexOf(sub); if (index > -1) niches[main].splice(index, 1); } else if (main) { delete niches[main]; } handleNicheUpdate(); } } }); }
     
+    // --- Listener untuk Auto-Update ---
+    window.api.onUpdateAvailable(() => { showNotification("Update ditemukan! Mengunduh di latar belakang..."); });
+    window.api.onUpdateDownloaded(() => { if (updateNotification) updateNotification.hidden = false; });
+    if (restartBtn) { restartBtn.addEventListener('click', () => window.api.restartApp()); }
+
     initializeApp();
-    // --- Listener untuk Notifikasi Auto-Update (Versi dengan Tombol) ---
-    window.api.onUpdateAvailable(() => {
-        showNotification("Update ditemukan! Mengunduh di latar belakang...");
-    });
-
-    window.api.onUpdateDownloaded(() => {
-        // Alih-alih notifikasi sementara, kita tampilkan bar permanen
-        if (updateNotification) updateNotification.hidden = false;
-    });
-
-    // Tambahkan event listener untuk tombol restart
-    if (restartBtn) {
-        restartBtn.addEventListener('click', () => {
-            window.api.restartApp();
-        });
-    }
 });

@@ -13,10 +13,10 @@ contextBridge.exposeInMainWorld("api", {
   generateMetadataAndCsv: (payload) => ipcRenderer.invoke('generate-metadata-and-csv', payload),
   saveCsv: (csvData) => ipcRenderer.invoke('save-csv', csvData),
   generateBatchPrompts: (payload) => ipcRenderer.invoke('generate-batch-prompts', payload),
-
-  // BARIS BARU DITAMBAHKAN DI SINI
   saveBatchPromptsCsv: (data) => ipcRenderer.invoke('save-batch-prompts-csv', data),
-  onUpdateAvailable: (callback) => ipcRenderer.on('update_available', callback),
-  onUpdateDownloaded: (callback) => ipcRenderer.on('update_downloaded', callback),
+
+  // Jembatan untuk Auto-Update
+  onUpdateAvailable: (callback) => ipcRenderer.on('update_available', (_event) => callback()),
+  onUpdateDownloaded: (callback) => ipcRenderer.on('update_downloaded', (_event) => callback()),
   restartApp: () => ipcRenderer.send('restart_app'),
 });
