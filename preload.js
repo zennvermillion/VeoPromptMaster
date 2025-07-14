@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld("api", {
 
   // === JEMBATAN BARU UNTUK AUTO-UPDATE INTERAKTIF ===
   onUpdateAvailable: (callback) => ipcRenderer.on('update_available', (_event, info) => callback(info)),
+  onUpdateNotAvailable: (callback) => ipcRenderer.on('update_not_available', (_event) => callback()),
   onDownloadProgress: (callback) => ipcRenderer.on('download_progress', (_event, percent) => callback(percent)),
   onUpdateDownloaded: (callback) => ipcRenderer.on('update_downloaded', (_event) => callback()),
   startDownload: () => ipcRenderer.send('start_download'),

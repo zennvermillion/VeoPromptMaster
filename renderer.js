@@ -101,6 +101,10 @@ document.addEventListener('DOMContentLoaded', () => {
         updateInstallingInfo.hidden = true;
     });
 
+    window.api.onUpdateNotAvailable(() => {
+    showNotification("Anda sudah menggunakan versi terbaru.");
+    });
+
     window.api.onDownloadProgress((percent) => {
         downloadProgressBar.style.width = `${Math.round(percent)}%`;
         downloadPercent.textContent = `${Math.round(percent)}%`;

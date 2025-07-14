@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog, Menu } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const fetch = require('node-fetch');
@@ -6,6 +6,51 @@ const Store = require('electron-store');
 const chokidar = require('chokidar');
 const { autoUpdater } = require("electron-updater");
 const log = require("electron-log");
+// --- TEMPLATE MENU APLIKASI ---
+const menuTemplate = [
+  {
+    label: 'File',
+    submenu: [
+      {
+        label: 'Keluar',
+        accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
+        click: () => {
+          app.quit();
+        }
+      }
+    ]
+  },
+  {
+    label: 'View',
+    submenu: [
+      { role: 'reload' },
+      { role: 'forceReload' },
+      { role: 'toggleDevTools' },
+    ]
+  },
+  {
+    label: 'Help',
+    submenu: [
+      {
+        label: 'Cek Update Aplikasi',
+        click: () => {
+          // Perintah ini akan memaksa pengecekan update saat menu diklik
+          autoUpdater.checkForUpdates();
+        }
+      },
+      {
+        label: 'About',
+        click: () => {
+            dialog.showMessageBox(mainWindow, {
+                type: 'info',
+                title: 'About Veo Prompt Master',
+                message: `Versi: ${app.getVersion()}\nAuthor: Zenn Vermillion`
+            });
+        }
+      }
+    ]
+  }
+];
 
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";
@@ -45,6 +90,11 @@ autoUpdater.on('update-available', (info) => {
     mainWindow.webContents.send('update_available', info);
 });
 
+autoUpdater.on('update-not-available', (info) => {
+  log.info('Update not available.', info);
+  mainWindow.webContents.send('update_not_available'); // <-- Tambahkan ini
+});
+
 autoUpdater.on('download-progress', (progressObj) => {
     mainWindow.webContents.send('download_progress', progressObj.percent);
 });
@@ -75,7 +125,11 @@ function startWatching(win, folderPath) {
     });
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+    createWindow();
+    const menu = Menu.buildFromTemplate(menuTemplate);
+    Menu.setApplicationMenu(menu);
+});
 app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit(); });
 app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 
