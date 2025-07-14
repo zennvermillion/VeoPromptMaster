@@ -39,31 +39,27 @@ function createWindow() {
     });
 }
 
-// --- Event Listener Auto-Updater (Versi Lengkap & Interaktif) ---
+// --- Event Listener Auto-Updater (Versi Interaktif FINAL) ---
 autoUpdater.on('update-available', (info) => {
-    log.info('Update available.');
-    dialog.showMessageBox({
-        type: 'info',
-        title: 'Update Ditemukan',
-        message: `Versi baru ${info.version} telah tersedia. Apakah Anda ingin mengunduhnya sekarang?`,
-        buttons: ['Ya, Unduh Sekarang', 'Nanti Saja']
-    }).then(result => {
-        if (result.response === 0) {
-            log.info('User chose to download update.');
-            mainWindow.webContents.send('update_download_start');
-            autoUpdater.downloadUpdate();
-        }
-    });
+    log.info('Update available.', info);
+    mainWindow.webContents.send('update_available', info);
 });
+
 autoUpdater.on('download-progress', (progressObj) => {
     mainWindow.webContents.send('download_progress', progressObj.percent);
 });
-autoUpdater.on('update-downloaded', () => {
-    log.info('Update downloaded.');
+
+autoUpdater.on('update-downloaded', (info) => {
+    log.info('Update downloaded; will install now', info);
     mainWindow.webContents.send('update_downloaded');
+    setTimeout(() => {
+        autoUpdater.quitAndInstall(true, true);
+    }, 2000); // Beri waktu 2 detik bagi UI untuk menampilkan pesan "Restarting..."
 });
-ipcMain.on('restart_app', () => {
-    autoUpdater.quitAndInstall(true, true); // true, true akan memaksa quit dan run setelah install
+
+ipcMain.on('start_download', () => {
+    log.info('User initiated download.');
+    autoUpdater.downloadUpdate();
 });
 
 function startWatching(win, folderPath) {

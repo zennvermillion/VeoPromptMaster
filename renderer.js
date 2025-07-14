@@ -11,13 +11,15 @@ document.addEventListener('DOMContentLoaded', () => {
         trash: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>`
     };
     
-    // --- Deklarasi Elemen ---
+    // --- Deklarasi Elemen (termasuk elemen update baru) ---
     const getEl = (id) => document.getElementById(id);
-    const mainNicheSelect=getEl("mainNiche"), subNicheSelect=getEl("subNiche"), generateBtn=getEl("generateBtn"), output=getEl("output"), copyBtn=getEl("copyBtn"), favBtn=getEl("favBtn"), historyListEl=getEl("historyList"), favoriteListEl=getEl("favoriteList"), modeToggle=getEl("modeToggle"), notif=getEl("notif"), apiKeyInput=getEl("apiKeyInput"), saveApiKeyBtn=getEl("saveApiKeyBtn"), startSessionBtn=getEl("startSessionBtn"), manageNichesBtn=getEl("manageNichesBtn"), nicheModal=getEl("nicheModal"), closeNicheModal=getEl("closeNicheModal"), newMainNicheInput=getEl("newMainNicheInput"), addMainNicheBtn=getEl("addMainNicheBtn"), mainNicheSelectForNewSub=getEl("mainNicheSelectForNewSub"), newSubNicheInput=getEl("newSubNicheInput"), addSubNicheBtn=getEl("addSubNicheBtn"), nicheManagementList=getEl("nicheManagementList"), appVersionEl=getEl("appVersion"), modalNotif=getEl("modalNotif"), exportCounter=getEl("exportCounter"), progressBar=getEl("progressBar"), exportCsvBtn=getEl("exportCsvBtn"), clearBatchBtn=getEl("clearBatchBtn"), selectFolderBtn = getEl("selectFolderBtn"), watchedFolderPathEl = getEl("watchedFolderPath"), productionQueueEl = getEl("productionQueue"), activePromptDisplay = getEl("activePromptDisplay"), negativePromptSection = getEl("negativePromptSection"), negativePromptOutput = getEl("negativePromptOutput"), copyNegativeBtn = getEl("copyNegativeBtn");
+    const mainNicheSelect=getEl("mainNiche"), subNicheSelect=getEl("subNiche"), generateBtn=getEl("generateBtn"), output=getEl("output"), copyBtn=getEl("copyBtn"), favBtn=getEl("favBtn"), historyListEl=getEl("historyList"), favoriteListEl=getEl("favoriteList"), modeToggle=getEl("modeToggle"), notif=getEl("notif"), apiKeyInput=getEl("apiKeyInput"), saveApiKeyBtn=getEl("saveApiKeyBtn"), startSessionBtn=getEl("startSessionBtn"), manageNichesBtn=getEl("manageNichesBtn"), nicheModal=getEl("nicheModal"), closeNicheModal=getEl("closeNicheModal"), newMainNicheInput=getEl("newMainNicheInput"), addMainNicheBtn=getEl("addMainNicheBtn"), mainNicheSelectForNewSub=getEl("mainNicheSelectForNewSub"), newSubNicheInput=getEl("newSubNicheInput"), addSubNicheBtn=getEl("addSubNicheBtn"), nicheManagementList=getEl("nicheManagementList"), appVersionEl=getEl("appVersion"), modalNotif=getEl("modalNotif"), negativePromptSection = getEl("negativePromptSection"), negativePromptOutput = getEl("negativePromptOutput"), copyNegativeBtn = getEl("copyNegativeBtn");
     const generateBatchBtn = getEl("generateBatchBtn"), batchCountInput = getEl("batchCount"), batchResultList = getEl("batchResultList"), exportBatchResultsBtn = getEl("exportBatchResultsBtn");
-    const updateNotification = getEl('update-notification'), restartBtn = getEl('restart-btn');
     const tabButtons = document.querySelectorAll(".main-tab-button"), tabContents = document.querySelectorAll(".tab-content");
-    
+    const updateNotification = getEl('update-notification'), updateVersionInfo = getEl('update-version-info'), updateAvailableInfo = getEl('update-available-info'), laterBtn = getEl('later-btn'), downloadBtn = getEl('download-btn');
+    const downloadProgressInfo = getEl('download-progress-info'), downloadPercent = getEl('download-percent'), downloadProgressBar = getEl('download-progress-bar');
+    const updateInstallingInfo = getEl('update-installing-info');
+
     // --- State Aplikasi ---
     let activePrompt = "", currentPrompt = "", negativePromptText = "", currentBatchResults = [];
     let historyData = [], favoriteData = [], metadataBatch = [], niches = {};
@@ -90,31 +92,37 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addSubNicheBtn) { addSubNicheBtn.addEventListener('click', () => { const selectedMain = mainNicheSelectForNewSub.value; const newSub = newSubNicheInput.value.trim(); if (selectedMain && newSub && !niches[selectedMain].includes(newSub)) { niches[selectedMain].push(newSub); newSubNicheInput.value = ''; showModalNotification("Sub-kategori ditambahkan!"); handleNicheUpdate(); } }); }
     if (nicheManagementList) { nicheManagementList.addEventListener('click', (e) => { if (e.target.classList.contains('delete-niche-btn')) { if (confirm('Yakin ingin menghapus item ini?')) { const main = e.target.dataset.mainNiche; const sub = e.target.dataset.subNiche; if (main && sub) { const index = niches[main].indexOf(sub); if (index > -1) niches[main].splice(index, 1); } else if (main) { delete niches[main]; } handleNicheUpdate(); } } }); }
     
-    // --- Listener untuk Auto-Update ---
-    const updateMessage = getEl('update-message');
-    const downloadProgressContainer = getEl('download-progress-container');
-    const downloadProgressBar = getEl('download-progress-bar');
-
-    window.api.onUpdateDownloadStart(() => {
-        if (updateNotification) updateNotification.hidden = false;
-        if (updateMessage) updateMessage.textContent = 'Mengunduh update...';
-        if (downloadProgressContainer) downloadProgressContainer.hidden = false;
+     // --- EVENT LISTENER BARU UNTUK ALUR UPDATE ---
+    window.api.onUpdateAvailable((info) => {
+        updateNotification.classList.add('active');
+        updateVersionInfo.textContent = `Update v${info.version} tersedia!`;
+        updateAvailableInfo.hidden = false;
+        downloadProgressInfo.hidden = true;
+        updateInstallingInfo.hidden = true;
     });
 
     window.api.onDownloadProgress((percent) => {
-        if (downloadProgressBar) downloadProgressBar.style.width = `${percent}%`;
-    });
-
-    window.api.onUpdateDownloaded(() => {
-        if (updateMessage) updateMessage.textContent = 'Update baru telah siap!';
-        if (downloadProgressContainer) downloadProgressContainer.hidden = true;
-        if (restartBtn) restartBtn.hidden = false;
+        downloadProgressBar.style.width = `${Math.round(percent)}%`;
+        downloadPercent.textContent = `${Math.round(percent)}%`;
     });
     
-    if (restartBtn) {
-        restartBtn.addEventListener('click', () => {
-            restartBtn.textContent = 'Restarting...';
-            window.api.restartApp();
+    window.api.onUpdateDownloaded(() => {
+        updateAvailableInfo.hidden = true;
+        downloadProgressInfo.hidden = true;
+        updateInstallingInfo.hidden = false;
+    });
+
+    if(downloadBtn) {
+        downloadBtn.addEventListener('click', () => {
+            updateAvailableInfo.hidden = true;
+            downloadProgressInfo.hidden = false;
+            window.api.startDownload();
+        });
+    }
+
+    if(laterBtn) {
+        laterBtn.addEventListener('click', () => {
+            updateNotification.classList.remove('active');
         });
     }
 

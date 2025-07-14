@@ -15,9 +15,9 @@ contextBridge.exposeInMainWorld("api", {
   generateBatchPrompts: (payload) => ipcRenderer.invoke('generate-batch-prompts', payload),
   saveBatchPromptsCsv: (data) => ipcRenderer.invoke('save-batch-prompts-csv', data),
 
-  onUpdateAvailable: (callback) => ipcRenderer.on('update_available', (_event) => callback()),
-  onUpdateDownloadStart: (callback) => ipcRenderer.on('update_download_start', (_event) => callback()),
-  onDownloadProgress: (callback) => ipcRenderer.on('download_progress', (_event, value) => callback(value)),
+  // === JEMBATAN BARU UNTUK AUTO-UPDATE INTERAKTIF ===
+  onUpdateAvailable: (callback) => ipcRenderer.on('update_available', (_event, info) => callback(info)),
+  onDownloadProgress: (callback) => ipcRenderer.on('download_progress', (_event, percent) => callback(percent)),
   onUpdateDownloaded: (callback) => ipcRenderer.on('update_downloaded', (_event) => callback()),
-  restartApp: () => ipcRenderer.send('restart_app'),
+  startDownload: () => ipcRenderer.send('start_download'),
 });

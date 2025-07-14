@@ -44,11 +44,22 @@
 
         <main class="main-content">
             <div id="update-notification" class="update-bar" hidden>
-                <span id="update-message">Update baru telah siap!</span>
-                <div id="download-progress-container" class="progress-bar-container" style="width: 200px; background-color: #fff;" hidden>
-                    <div id="download-progress-bar" class="progress-bar"></div>
+                <div id="update-available-info" class="update-state">
+                    <span id="update-version-info"></span>
+                    <div class="update-actions">
+                        <button id="later-btn" class="secondary-light">Nanti Saja</button>
+                        <button id="download-btn" class="primary-light">Download Sekarang</button>
+                    </div>
                 </div>
-                <button id="restart-btn" class="primary" hidden>Restart & Update Sekarang</button>
+                <div id="download-progress-info" class="update-state" hidden>
+                    <span>Mengunduh update... <span id="download-percent">0%</span></span>
+                    <div class="progress-bar-container" style="width: 250px; background-color: rgba(255,255,255,0.2);">
+                        <div id="download-progress-bar" class="progress-bar"></div>
+                    </div>
+                </div>
+                <div id="update-installing-info" class="update-state" hidden>
+                    <span>Unduhan selesai! Aplikasi akan me-restart untuk menginstal...</span>
+                </div>
             </div>
             
             <div class="main-tabs">
