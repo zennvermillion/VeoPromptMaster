@@ -36,7 +36,6 @@ const menuTemplate = [
         click: () => {
           // KIRIM PESAN DAN JALANKAN PENGECEKAN
           log.info('User triggered update check from menu.');
-          mainWindow.webContents.send('checking_for_update');
           autoUpdater.checkForUpdates();
         }
       },
@@ -87,6 +86,11 @@ function createWindow() {
 }
 
 // --- Event Listener Auto-Updater (Versi Interaktif FINAL) ---
+autoUpdater.on('checking-for-update', () => {
+    log.info('Checking for update...');
+    mainWindow.webContents.send('checking_for_update');
+});
+
 autoUpdater.on('update-available', (info) => {
     log.info('Update available.', info);
     mainWindow.webContents.send('update_available', info);
