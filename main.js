@@ -32,12 +32,13 @@ const menuTemplate = [
     label: 'Help',
     submenu: [
       {
-        label: 'Cek Update Aplikasi',
-        click: () => {
-          // Perintah ini akan memaksa pengecekan update saat menu diklik
-          autoUpdater.checkForUpdates();
-        }
-      },
+            label: 'Cek Update Aplikasi',
+            click: () => {
+                // Langsung kirim notifikasi ke UI
+                mainWindow.webContents.send('checking_for_update');
+                autoUpdater.checkForUpdates();
+            }
+        },
       {
         label: 'About',
         click: () => {

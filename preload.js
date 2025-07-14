@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld("api", {
   saveBatchPromptsCsv: (data) => ipcRenderer.invoke('save-batch-prompts-csv', data),
 
   // === JEMBATAN BARU UNTUK AUTO-UPDATE INTERAKTIF ===
+  onCheckingForUpdate: (callback) => ipcRenderer.on('checking_for_update', (_event) => callback()),
   onUpdateAvailable: (callback) => ipcRenderer.on('update_available', (_event, info) => callback(info)),
   onUpdateNotAvailable: (callback) => ipcRenderer.on('update_not_available', (_event) => callback()),
   onDownloadProgress: (callback) => ipcRenderer.on('download_progress', (_event, percent) => callback(percent)),

@@ -93,6 +93,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (nicheManagementList) { nicheManagementList.addEventListener('click', (e) => { if (e.target.classList.contains('delete-niche-btn')) { if (confirm('Yakin ingin menghapus item ini?')) { const main = e.target.dataset.mainNiche; const sub = e.target.dataset.subNiche; if (main && sub) { const index = niches[main].indexOf(sub); if (index > -1) niches[main].splice(index, 1); } else if (main) { delete niches[main]; } handleNicheUpdate(); } } }); }
     
      // --- EVENT LISTENER BARU UNTUK ALUR UPDATE ---
+    window.api.onCheckingForUpdate(() => {
+        showNotification("Mengecek update...");
+    });
+    
     window.api.onUpdateAvailable((info) => {
         updateNotification.classList.add('active');
         updateVersionInfo.textContent = `Update v${info.version} tersedia!`;
