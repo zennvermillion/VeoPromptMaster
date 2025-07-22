@@ -13,7 +13,13 @@ contextBridge.exposeInMainWorld("api", {
   generateMetadataAndCsv: (payload) => ipcRenderer.invoke('generate-metadata-and-csv', payload),
   saveCsv: (csvData) => ipcRenderer.invoke('save-csv', csvData),
   generateBatchPrompts: (payload) => ipcRenderer.invoke('generate-batch-prompts', payload),
-
-  // BARIS BARU DITAMBAHKAN DI SINI
   saveBatchPromptsCsv: (data) => ipcRenderer.invoke('save-batch-prompts-csv', data),
+
+  // === JEMBATAN BARU UNTUK AUTO-UPDATE INTERAKTIF ===
+  onCheckingForUpdate: (callback) => ipcRenderer.on('checking_for_update', (_event) => callback()),
+  onUpdateAvailable: (callback) => ipcRenderer.on('update_available', (_event, info) => callback(info)),
+  onUpdateNotAvailable: (callback) => ipcRenderer.on('update_not_available', (_event) => callback()),
+  onDownloadProgress: (callback) => ipcRenderer.on('download_progress', (_event, percent) => callback(percent)),
+  onUpdateDownloaded: (callback) => ipcRenderer.on('update_downloaded', (_event) => callback()),
+  startDownload: () => ipcRenderer.send('start_download'),
 });

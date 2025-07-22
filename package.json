@@ -1,6 +1,6 @@
 {
   "name": "veo-prompt-master",
-  "version": "2.3.3",
+  "version": "2.9.5",
   "productName": "Veo Prompt Master",
   "description": "A tool to generate cinematic prompts for AI video",
   "author": "Zenn Vermillion",
@@ -10,9 +10,15 @@
     "start": "electron .",
     "build": "electron-builder"
   },
+  "repository": {
+  "type": "git",
+  "url": "https://github.com/zennvermillion/VeoPromptMaster.git"
+  },
   "dependencies": {
     "chokidar": "^3.6.0",
+    "electron-log": "^5.4.1",
     "electron-store": "8",
+    "electron-updater": "^6.6.2",
     "node-fetch": "^2.7.0"
   },
   "devDependencies": {
@@ -22,6 +28,13 @@
   "build": {
     "appId": "com.zennvermillion.veopromptmaster",
     "productName": "Veo Prompt Master",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "zennvermillion",
+        "repo": "VeoPromptMaster"
+      }
+    ],
     "files": [
       "**/*"
     ],

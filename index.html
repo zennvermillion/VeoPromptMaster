@@ -43,6 +43,25 @@
         </aside>
 
         <main class="main-content">
+            <div id="update-notification" class="update-bar" hidden>
+                <div id="update-available-info" class="update-state">
+                    <span id="update-version-info"></span>
+                    <div class="update-actions">
+                        <button id="later-btn" class="secondary-light">Nanti Saja</button>
+                        <button id="download-btn" class="primary-light">Download Sekarang</button>
+                    </div>
+                </div>
+                <div id="download-progress-info" class="update-state" hidden>
+                    <span>Mengunduh update... <span id="download-percent">0%</span></span>
+                    <div class="progress-bar-container" style="width: 250px; background-color: rgba(255,255,255,0.2);">
+                        <div id="download-progress-bar" class="progress-bar"></div>
+                    </div>
+                </div>
+                <div id="update-installing-info" class="update-state" hidden>
+                    <span>Unduhan selesai! Aplikasi akan me-restart untuk menginstal...</span>
+                </div>
+            </div>
+            
             <div class="main-tabs">
                 <button class="main-tab-button active" data-tab="generator">Generator</button>
                 <button class="main-tab-button" data-tab="batch-results">Batch Results</button>
@@ -90,37 +109,36 @@
             <div id="favoriteView" class="tab-content list-view-card"><div id="favoriteList" class="history-favorite-list"></div></div>
 
         </main>
+        
+        <dialog id="nicheModal">
+            <div class="modal-header">
+                <h2>Kelola Niche & Sub-Niche</h2>
+                <button id="closeNicheModal" class="close-button">&times;</button>
+            </div>
+            <div class="modal-content">
+                <div class="modal-column">
+                    <h3>Tambah Kategori Utama</h3>
+                    <div class="modal-input-group">
+                        <input type="text" id="newMainNicheInput" placeholder="Contoh: ✈️ Travel & Vlog">
+                        <button id="addMainNicheBtn" class="primary">Tambah</button>
+                    </div>
+                    <h3>Tambah Sub-Kategori</h3>
+                    <div class="modal-input-group">
+                        <select id="mainNicheSelectForNewSub"></select>
+                        <input type="text" id="newSubNicheInput" placeholder="Contoh: Pemandangan Kota Malam Hari">
+                        <button id="addSubNicheBtn" class="primary">Tambah</button>
+                    </div>
+                </div>
+                <div class="modal-column">
+                    <h3>Daftar Saat Ini</h3>
+                    <div id="nicheManagementList" class="niche-management-list"></div>
+                </div>
+            </div>
+            <div id="modalNotif" class="modal-notif"></div>
+        </dialog>
     </div>
 
     <div id="notif" role="alert" aria-live="assertive"></div>
-    
-    <dialog id="nicheModal">
-        <div class="modal-header">
-            <h2>Kelola Niche & Sub-Niche</h2>
-            <button id="closeNicheModal" class="close-button">&times;</button>
-        </div>
-        <div class="modal-content">
-            <div class="modal-column">
-                <h3>Tambah Kategori Utama</h3>
-                <div class="modal-input-group">
-                    <input type="text" id="newMainNicheInput" placeholder="Contoh: ✈️ Travel & Vlog">
-                    <button id="addMainNicheBtn" class="primary">Tambah</button>
-                </div>
-                <h3>Tambah Sub-Kategori</h3>
-                <div class="modal-input-group">
-                    <select id="mainNicheSelectForNewSub"></select>
-                    <input type="text" id="newSubNicheInput" placeholder="Contoh: Pemandangan Kota Malam Hari">
-                    <button id="addSubNicheBtn" class="primary">Tambah</button>
-                </div>
-            </div>
-            <div class="modal-column">
-                <h3>Daftar Saat Ini</h3>
-                <div id="nicheManagementList" class="niche-management-list"></div>
-            </div>
-        </div>
-        <div id="modalNotif" class="modal-notif"></div>
-    </dialog>
-
     <script src="renderer.js"></script>
 </body>
 </html>

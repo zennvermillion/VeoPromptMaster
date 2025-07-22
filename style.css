@@ -156,3 +156,15 @@ dialog::backdrop { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4
    outline: none;
    border-color: var(--accent-color); 
 }
+
+/* --- Styling FINAL untuk Notifikasi Update --- */
+.update-bar { padding: 10px 15px; background-color: var(--accent-color); color: white; display: none; /* Diubah oleh JS menjadi flex */ justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 16px; font-weight: 600; }
+.update-bar[hidden] { display: none !important; }
+.update-bar.active { display: flex; }
+.update-state { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+.update-state[hidden] { display: none !important; }
+.update-bar .update-actions { display: flex; gap: 10px; }
+.update-bar button { font-weight: 700; padding: 6px 12px; border-radius: 5px; }
+.update-bar button.primary-light { background-color: #fff; color: var(--accent-color); }
+.update-bar button.secondary-light { background: none; border: 1px solid #fff; color: #fff; }
+.update-bar .progress-bar { background-color: var(--success-color); }
