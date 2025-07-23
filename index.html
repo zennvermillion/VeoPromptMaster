@@ -36,10 +36,12 @@
                 </section>
                 <section class="card">
                     <h2>PENGATURAN</h2>
-                    <div class="input-group"><label for="apiKeyInput">Your Gemini API Key</label><input type="password" id="apiKeyInput" placeholder="Masukkan kunci API Anda..."><button id="saveApiKeyBtn" class="secondary" style="width:100%; margin-top:10px;">Simpan Kunci</button></div>
+                    <div class="btn-grid">
+                        <button id="manageApiKeysBtn" class="secondary">Kelola API Keys</button>
+                        <button id="manageNichesBtn" class="secondary">Kelola Niche</button>
+                    </div>
                 </section>
             </nav>
-            <div class="sidebar-footer"><button id="manageNichesBtn" class="secondary">Kelola Niche</button><button id="modeToggle" aria-label="Toggle Dark/Light Mode"></button></div>
         </aside>
 
         <main class="main-content">
@@ -75,8 +77,9 @@
                     <h2>Generated Result</h2>
                     <pre id="output" aria-live="polite">Hasil prompt akan muncul di sini...</pre>
                     <div class="action-buttons">
-                        <button id="copyBtn" class="secondary" disabled>Copy Prompt</button>
-                        <button id="favBtn" class="secondary" disabled>Favorite</button>
+                        <button id="copyBtn" class="secondary" disabled><i class="large-icon icon-copy" title="Copy Prompt"></i></button>
+                        <button id="startSessionBtn" class="primary"><i class="large-icon icon-play" title="Mulai Sesi Produksi"></i></button>
+                        <button id="favBtn" class="secondary" disabled><i class="large-icon icon-heart" title="Favorite"></i></button>
                     </div>
 
                     <div id="negativePromptSection" class="metadata-section" hidden>
@@ -84,18 +87,11 @@
                         <h3>Negative Prompt Suggestion</h3>
                         <pre id="negativePromptOutput"></pre>
                         <div class="action-buttons">
-                            <button id="copyNegativeBtn" class="secondary">Copy Negative Prompt</button>
+                            <button id="copyNegativeBtn" class="secondary"><i class="large-icon icon-clipboard" title="Copy Negative Prompt"></i></button>
                         </div>
                     </div>
-
-                    <div id="metadataSection" class="metadata-section" hidden>
-                        <hr class="divider">
-                        <button id="startSessionBtn" class="primary">Mulai Sesi Produksi dengan Prompt Ini</button>
-                    </div>
                 </div>
-            </div>
-
-            <div id="batch-resultsView" class="tab-content list-view-card">
+            </div> <div id="batch-resultsView" class="tab-content list-view-card">
                 <div id="batchResultList" class="history-favorite-list">
                     <div class="empty-queue">Hasil generate batch akan muncul di sini...</div>
                 </div>
@@ -104,9 +100,29 @@
                 </div>
             </div>
 
-            <div id="production-queueView" class="tab-content"><div class="screening-setup card"><h2>Production Folder Setup</h2><p>Pilih sebuah folder di komputermu untuk diawasi...</p><button id="selectFolderBtn" class="primary">Pilih Folder untuk Diawasi</button><p class="folder-path">Folder saat ini: <span id="watchedFolderPath">Belum diatur</span></p></div><div class="screening-queue-card card"><h2>Antrean Produksi</h2><div id="activePromptDisplay" class="folder-path" hidden></div><div id="productionQueue" class="production-queue"><div class="empty-queue">Belum ada video baru...</div></div></div></div>
-            <div id="historyView" class="tab-content list-view-card"><div id="historyList" class="history-favorite-list"></div></div>
-            <div id="favoriteView" class="tab-content list-view-card"><div id="favoriteList" class="history-favorite-list"></div></div>
+            <div id="production-queueView" class="tab-content">
+                <div class="screening-setup card">
+                    <h2>Production Folder Setup</h2>
+                    <p>Pilih sebuah folder di komputermu untuk diawasi...</p>
+                    <button id="selectFolderBtn" class="primary">Pilih Folder untuk Diawasi</button>
+                    <p class="folder-path">Folder saat ini: <span id="watchedFolderPath">Belum diatur</span></p>
+                </div>
+                <div class="screening-queue-card card">
+                    <h2>Antrean Produksi</h2>
+                    <div id="activePromptDisplay" class="folder-path" hidden></div>
+                    <div id="productionQueue" class="production-queue">
+                        <div class="empty-queue">Belum ada video baru...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="historyView" class="tab-content list-view-card">
+                <div id="historyList" class="history-favorite-list"></div>
+            </div>
+            
+            <div id="favoriteView" class="tab-content list-view-card">
+                <div id="favoriteList" class="history-favorite-list"></div>
+            </div>
 
         </main>
         
@@ -135,6 +151,26 @@
                 </div>
             </div>
             <div id="modalNotif" class="modal-notif"></div>
+        </dialog>
+
+        <dialog id="apiKeyModal">
+            <div class="modal-header">
+                <h2>Kelola Gemini API Keys</h2>
+                <button id="closeApiKeyModal" class="close-button">&times;</button>
+            </div>
+            <div class="modal-content" style="grid-template-columns: 1fr; max-height: 400px; overflow-y: auto;">
+                <div class="modal-column">
+                    <h3>Tambah API Key Baru</h3>
+                    <div class="modal-input-group">
+                        <input type="password" id="newApiKeyInput" placeholder="Masukkan kunci API baru...">
+                        <button id="addApiKeyBtn" class="primary">Tambah Kunci</button>
+                    </div>
+                    
+                    <h3>Daftar Kunci Saat Ini</h3>
+                    <div id="apiKeyManagementList" class="niche-management-list" style="max-height: 250px;">
+                        </div>
+                </div>
+            </div>
         </dialog>
     </div>
 

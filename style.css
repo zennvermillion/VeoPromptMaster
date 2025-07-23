@@ -31,7 +31,21 @@ body { font-family: var(--font-sans); background-color: var(--bg-app); color: va
 .app-container-v2 { display: grid; grid-template-columns: 320px 1fr; height: 100vh; gap: 16px; padding: 16px; }
 .sidebar-left { display: flex; flex-direction: column; gap: 16px; background-color: var(--card-bg); border-radius: 12px; padding: 20px; overflow-y: auto; }
 .main-content { display: flex; flex-direction: column; gap: 16px; background-color: var(--card-bg); border-radius: 12px; padding: 20px; overflow-y: hidden; }
-.sidebar-header { text-align: center; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
+.sidebar-header {
+    text-align: center;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-header > span {
+    flex-grow: 1; /* Membuat judul mengambil sisa ruang */
+}
+
+#modeToggle {
+    margin-top: 10px;
+    margin-left: 16px; /* Memberi jarak dari judul */
+}
+
 .sidebar-header h1 { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
 .sidebar-header .accent { color: var(--accent-color); }
 #appVersion { font-size: 12px; color: var(--text-muted); font-weight: 500; }
@@ -52,7 +66,6 @@ button.primary:disabled { background-color: var(--border-color); color: var(--te
 button.secondary { background-color: var(--bg-hover); color: var(--text-muted); }
 button.secondary:hover { background-color: var(--bg-card); border-color: var(--accent-color); color: var(--accent-color); }
 #manageNichesBtn { flex-grow: 1; }
-#modeToggle { flex-shrink: 0; }
 .main-tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
 .main-tab-button { padding: 8px 16px; background: none; border: none; color: var(--text-muted); font-size: 15px; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; }
 .main-tab-button.active { color: var(--accent-color); border-bottom-color: var(--accent-color); }
@@ -80,16 +93,66 @@ button.secondary:hover { background-color: var(--bg-card); border-color: var(--a
 .icon-button { background: none; border: none; color: var(--text-muted); padding: 4px; border-radius: 4px; }
 .icon-button:hover { color: var(--accent-color); background-color: var(--accent-subtle); }
 .icon-button svg { width: 18px; height: 18px; display: block; }
+.large-icon {
+    display: inline-block;
+    width: 22px;  /* Lebar ikon */
+    height: 22px; /* Tinggi ikon */
+    /* Trik ini membuat warna ikon mengikuti warna teks tombol (otomatis terang/gelap) */
+    background-color: currentColor;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+}
+
+/* Ikon untuk setiap tombol */
+.icon-copy {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3crect x='9' y='9' width='13' height='13' rx='2' ry='2'%3e%3c/rect%3e%3cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'%3e%3c/path%3e%3c/svg%3e");
+    mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3crect x='9' y='9' width='13' height='13' rx='2' ry='2'%3e%3c/rect%3e%3cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'%3e%3c/path%3e%3c/svg%3e");
+}
+
+.icon-play {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='currentColor'%3e%3cpath d='M8 5v14l11-7z'/%3e%3c/svg%3e");
+    mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='currentColor'%3e%3cpath d='M8 5v14l11-7z'/%3e%3c/svg%3e");
+}
+
+.icon-heart {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z'%3e%3c/path%3e%3c/svg%3e");
+    mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z'%3e%3c/path%3e%3c/svg%3e");
+}
+
+.icon-clipboard {
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'%3e%3c/path%3e%3crect x='8' y='2' width='8' height='4' rx='1' ry='1'%3e%3c/rect%3e%3c/svg%3e");
+    mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'%3e%3c/path%3e%3crect x='8' y='2' width='8' height='4' rx='1' ry='1'%3e%3c/rect%3e%3c/svg%3e");
+}
+
+/* Penyesuaian untuk tombol yang berisi ikon */
+.action-buttons button {
+    padding: 10px; /* Sedikit padding agar tombol tidak terlalu kecil */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
 #notif { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: var(--success-color); color: var(--bg-app); padding: 12px 24px; border-radius: 6px; font-weight: 600; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
 #notif.show { opacity: 1; visibility: visible; }
 dialog {
-    width: 800px;
     max-width: 90vw;
     border: 1px solid var(--border-color);
     border-radius: 12px;
     background-color: var(--bg-sidebar);
     color: var(--text-primary);
     padding: 0;
+}
+
+#nicheModal {
+    width: 800px;
+}
+
+#apiKeyModal {
+    width: 350px; 
 }
 
 dialog::backdrop {

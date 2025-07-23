@@ -2,8 +2,8 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("api", {
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
-  getApiKey: () => ipcRenderer.invoke('get-api-key'),
-  saveApiKey: (key) => ipcRenderer.send('save-api-key', key),
+  getApiKeys: () => ipcRenderer.invoke('get-api-keys'),
+  saveApiKeys: (keys) => ipcRenderer.send('save-api-keys', keys),
   getUserNiches: () => ipcRenderer.invoke('get-user-niches'),
   saveUserNiches: (niches) => ipcRenderer.send('save-user-niches', niches),
   getWatchedFolderPath: () => ipcRenderer.invoke('get-watched-folder-path'),
@@ -14,8 +14,8 @@ contextBridge.exposeInMainWorld("api", {
   saveCsv: (csvData) => ipcRenderer.invoke('save-csv', csvData),
   generateBatchPrompts: (payload) => ipcRenderer.invoke('generate-batch-prompts', payload),
   saveBatchPromptsCsv: (data) => ipcRenderer.invoke('save-batch-prompts-csv', data),
-
-  // === JEMBATAN BARU UNTUK AUTO-UPDATE INTERAKTIF ===
+  clearUsedSubjects: () => ipcRenderer.send('clear-used-subjects'),
+  onSetTheme: (callback) => ipcRenderer.on('set-theme', (_event, theme) => callback(theme)),
   onCheckingForUpdate: (callback) => ipcRenderer.on('checking_for_update', (_event) => callback()),
   onUpdateAvailable: (callback) => ipcRenderer.on('update_available', (_event, info) => callback(info)),
   onUpdateNotAvailable: (callback) => ipcRenderer.on('update_not_available', (_event) => callback()),
