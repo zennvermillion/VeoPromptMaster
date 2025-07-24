@@ -283,9 +283,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (nicheManagementList) { nicheManagementList.addEventListener('click', (e) => { if (e.target.classList.contains('delete-niche-btn')) { if (confirm('Yakin ingin menghapus item ini?')) { const main = e.target.dataset.mainNiche; const sub = e.target.dataset.subNiche; if (main && sub) { const index = niches[main].indexOf(sub); if (index > -1) niches[main].splice(index, 1); } else if (main) { delete niches[main]; } handleNicheUpdate(); } } }); }
     
     // Listener Auto-Update
-    window.api.onCheckingForUpdate(() => { showNotification("Mengecek update..."); });
+    
     window.api.onUpdateAvailable((info) => { if(updateNotification) updateNotification.classList.add('active'); if(updateVersionInfo) updateVersionInfo.textContent = `Update v${info.version} tersedia!`; if(updateAvailableInfo) updateAvailableInfo.hidden = false; if(downloadProgressInfo) downloadProgressInfo.hidden = true; if(updateInstallingInfo) updateInstallingInfo.hidden = true; });
-    window.api.onUpdateNotAvailable(() => { showNotification("Anda sudah menggunakan versi terbaru."); });
     window.api.onDownloadProgress((percent) => { if(downloadProgressBar) downloadProgressBar.style.width = `${Math.round(percent)}%`; if(downloadPercent) downloadPercent.textContent = `${Math.round(percent)}%`; });
     window.api.onUpdateDownloaded(() => { if(updateAvailableInfo) updateAvailableInfo.hidden = true; if(downloadProgressInfo) downloadProgressInfo.hidden = true; if(updateInstallingInfo) updateInstallingInfo.hidden = false; });
     window.api.onSetTheme((theme) => {

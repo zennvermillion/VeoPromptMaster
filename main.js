@@ -48,11 +48,12 @@ const menuTemplate = [
       {
         label: 'Cek Update Aplikasi',
         click: () => {
-          // KIRIM PESAN DAN JALANKAN PENGECEKAN
-          log.info('User triggered update check from menu.');
-          autoUpdater.checkForUpdates();
+        log.info('User triggered manual update check from menu.');
+        isManualCheck = true;
+        // Langsung jalankan pengecekan tanpa dialog awal
+        autoUpdater.checkForUpdates();
         }
-      },
+    },
       {
         label: 'About',
         click: () => {
@@ -76,6 +77,7 @@ let watcher = null;
 let mainWindow;
 let apiKeyIndex = 0;
 let usedSubjects = [];
+let isManualCheck = false;
 
 // Fungsi untuk mendapatkan API key berikutnya secara bergiliran
 function getNextApiKey() {
@@ -103,8 +105,10 @@ function createWindow() {
     mainWindow.loadFile("index.html");
 
     mainWindow.webContents.on('did-finish-load', () => {
-        log.info('App did-finish-load, checking for updates.');
-        autoUpdater.checkForUpdates();
+    log.info('App did-finish-load, starting automatic update check.');
+    // Tandai bahwa ini adalah pengecekan otomatis (senyap)
+    isManualCheck = false;
+    autoUpdater.checkForUpdates();
         mainWindow.webContents.send('set-theme', store.get('theme', 'dark'));
         const watchedFolderPath = store.get('watchedFolderPath');
         if (watchedFolderPath && fs.existsSync(watchedFolderPath)) {
@@ -114,10 +118,6 @@ function createWindow() {
 }
 
 // --- Event Listener Auto-Updater (Versi Interaktif FINAL) ---
-autoUpdater.on('checking-for-update', () => {
-    log.info('Checking for update...');
-    mainWindow.webContents.send('checking_for_update');
-});
 
 autoUpdater.on('update-available', (info) => {
     log.info('Update available.', info);
@@ -125,8 +125,23 @@ autoUpdater.on('update-available', (info) => {
 });
 
 autoUpdater.on('update-not-available', (info) => {
-  log.info('Update not available.', info);
-  mainWindow.webContents.send('update_not_available'); // <-- Tambahkan ini
+  log.info('Update not available.');
+  // Hanya tampilkan dialog jika pengecekan manual
+  if (isManualCheck) {
+    dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        title: 'Pengecekan Update',
+        message: 'Anda sudah menggunakan versi terbaru.'
+    });
+  }
+});
+
+autoUpdater.on('error', (err) => {
+    log.error('Error in auto-updater. ' + err);
+    // Hanya tampilkan dialog jika pengecekan manual
+    if (isManualCheck) {
+        dialog.showErrorBox('Update Error', `Gagal memeriksa pembaruan: ${err.message}`);
+    }
 });
 
 autoUpdater.on('download-progress', (progressObj) => {
