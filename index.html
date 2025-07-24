@@ -35,7 +35,7 @@
                     <div class="btn-grid"><button id="exportCsvBtn" class="primary" disabled>Export to CSV</button><button id="clearBatchBtn" class="secondary">Clear Batch</button></div>
                 </section>
                 <section class="card">
-                    <h2>PENGATURAN</h2>
+                    <h2>SETTING</h2>
                     <div class="btn-grid">
                         <button id="manageApiKeysBtn" class="secondary">Kelola API Keys</button>
                         <button id="manageNichesBtn" class="secondary">Kelola Niche</button>
@@ -63,6 +63,7 @@
                     <span>Unduhan selesai! Klik untuk mulai ulang & instal.</span>
                     <button id="restart-btn" class="primary-light">Mulai Ulang Sekarang</button>
                 </div>
+            </div>
             
             <div class="main-tabs">
                 <button class="main-tab-button active" data-tab="generator">Generator</button>
@@ -91,7 +92,9 @@
                         </div>
                     </div>
                 </div>
-            </div> <div id="batch-resultsView" class="tab-content list-view-card">
+            </div>
+
+            <div id="batch-resultsView" class="tab-content list-view-card">
                 <div id="batchResultList" class="history-favorite-list">
                     <div class="empty-queue">Hasil generate batch akan muncul di sini...</div>
                 </div>
@@ -153,6 +156,7 @@
                     </div>
                     <div id="nicheManagementList" class="niche-management-list"></div>
                 </div>
+            </div>
             <div id="modalNotif" class="modal-notif"></div>
         </dialog>
 
@@ -170,8 +174,7 @@
                     </div>
                     
                     <h3>Daftar Kunci Saat Ini</h3>
-                    <div id="apiKeyManagementList" class="niche-management-list" style="max-height: 250px;">
-                        </div>
+                    <div id="apiKeyManagementList" class="niche-management-list" style="max-height: 250px;"></div>
                 </div>
             </div>
         </dialog>
