@@ -320,4 +320,46 @@ ipcMain.handle('generate-metadata-and-csv', async (event, { videoFilename, activ
         return { error: "Gagal mem-parse respons metadata dari AI." };
     }
 });
-async function generateFromGemini(promptText, apiKey, responseMimeType = "text/plain") { const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`; try { const body = { contents: [{ parts: [{ text: promptText }] }] }; if (responseMimeType === "application/json") { body.generationConfig = { response_mime_type: "application/json" }; } const response = await fetch(GEMINI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!response.ok) { const err = await response.json(); return { error: err.error ? err.error.message : 'API Error' }; } const data = await response.json(); if (data.candidates && data.candidates.length > 0) { return { text: data.candidates[0].content.parts[0].text.trim() }; } return { error: "No valid response from Gemini" }; } catch (err) { return { error: err.message }; }}
+async function generateFromGemini(promptText, apiKey, responseMimeType = "text/plain") {
+    const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    try {
+        const body = {
+            contents: [{
+                parts: [{
+                    text: promptText
+                }]
+            }]
+        };
+        if (responseMimeType === "application/json") {
+            body.generationConfig = {
+                response_mime_type: "application/json"
+            };
+        }
+        const response = await fetch(GEMINI_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+        if (!response.ok) {
+            const err = await response.json();
+            return {
+                error: err.error ? err.error.message : 'API Error'
+            };
+        }
+        const data = await response.json();
+        if (data.candidates && data.candidates.length > 0) {
+            return {
+                text: data.candidates[0].content.parts[0].text.trim()
+            };
+        }
+        return {
+            error: "No valid response from Gemini"
+        };
+    } catch (err) {
+        return {
+            error: err.message
+        };
+    }
+}
