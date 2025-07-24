@@ -144,12 +144,15 @@
                         <input type="text" id="newSubNicheInput" placeholder="Contoh: Pemandangan Kota Malam Hari">
                         <button id="addSubNicheBtn" class="primary">Tambah</button>
                     </div>
+                    <button id="cancelEditBtn" class="secondary" style="display: none; width: 100%;">Batal Edit</button>
                 </div>
                 <div class="modal-column">
-                    <h3>Daftar Saat Ini</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h3>Daftar Saat Ini</h3>
+                        <button id="sortNichesBtn" class="secondary" style="padding: 5px 10px;">Urutkan A-Z</button>
+                    </div>
                     <div id="nicheManagementList" class="niche-management-list"></div>
                 </div>
-            </div>
             <div id="modalNotif" class="modal-notif"></div>
         </dialog>
 

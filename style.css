@@ -166,15 +166,71 @@ dialog::backdrop { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4
 .modal-content { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; }
 .modal-input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
 .niche-management-list { max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; }
-.niche-item, .sub-niche-item { display: flex; justify-content: space-between; padding: 8px; border-radius: 4px; }
+.niche-item, .sub-niche-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* PENTING: agar ikon sejajar */
+    padding: 8px;
+    border-radius: 4px;
+}
+.management-actions {
+    display: flex;
+    gap: 8px;
+    opacity: 0; /* Sembunyikan secara default */
+    transition: opacity 0.2s ease-in-out;
+}
+
+.niche-item:hover .management-actions,
+.sub-niche-item:hover .management-actions {
+    opacity: 1; /* Tampilkan saat di-hover */
+}
 .niche-item { font-weight: 600; }
 .niche-item {
     margin-bottom: 4px; /* Mengurangi jarak ke sub-niche di bawahnya */
 }
+/* Jadikan Kategori Utama bisa diklik */
+.niche-item {
+    cursor: pointer;
+}
+
+/* Penanda panah (►) */
+.niche-item > span::before {
+    content: '▶';
+    display: inline-block;
+    font-size: 10px;
+    margin-right: 8px;
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Panah akan berputar ke bawah saat item dibuka */
+.niche-item.expanded > span::before {
+    transform: rotate(90deg);
+}
+
+/* Wadah untuk sub-niche, tersembunyi secara default */
+.sub-niche-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+    padding-left: 15px; /* Beri sedikit indentasi agar rapi */
+}
+
+/* Tampilkan wadah saat Kategori Utama dibuka */
+.niche-item.expanded + .sub-niche-container {
+    max-height: 500px; /* Atur ketinggian maksimum yang cukup */
+}
 .sub-niche-item { padding: 2px 8px 2px 24px; font-size: 13px; }
 .sub-niche-item span { display: flex; align-items: center; gap: 8px; color: var(--text-primary); }
 .sub-niche-icon { font-size: 16px; color: var(--text-muted); }
-.delete-niche-btn { background: none; border: none; color: var(--error-color); cursor: pointer; font-size: 18px; opacity: 0.5; }
+.icon-button.delete-niche-btn {
+    color: var(--error-color);
+}
+.icon-button.edit-btn {
+    color: var(--text-muted);
+}
+.icon-button.edit-btn:hover {
+    color: var(--accent-color);
+}
 .niche-item:hover .delete-niche-btn, .sub-niche-item:hover .delete-niche-btn { opacity: 1; }
 .modal-notif { text-align: center; padding: 10px; background-color: var(--accent-color); color: #fff; font-weight: 600; opacity: 0; transition: opacity 0.3s; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); border-radius: 6px; }
 .modal-notif.show { opacity: 1; }

@@ -20,10 +20,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadProgressInfo = getEl('download-progress-info'), downloadPercent = getEl('download-percent'), downloadProgressBar = getEl('download-progress-bar');
     const updateInstallingInfo = getEl('update-installing-info'), restartBtn = getEl('restart-btn');
     const manageApiKeysBtn=getEl("manageApiKeysBtn"), apiKeyModal=getEl("apiKeyModal"), closeApiKeyModal=getEl("closeApiKeyModal"), newApiKeyInput=getEl("newApiKeyInput"), addApiKeyBtn=getEl("addApiKeyBtn"), apiKeyManagementList=getEl("apiKeyManagementList");
+    const cancelEditBtn = getEl('cancelEditBtn');
 
     // --- State Aplikasi ---
     let activePrompt = "", currentPrompt = "", negativePromptText = "", currentBatchResults = [];
     let historyData = [], favoriteData = [], metadataBatch = [], niches = {}, apiKeys = []; // Tambahkan state apiKeys
+    let editingItem = null;
     const BATCH_GOAL = 25;
     const defaultNiches = { "💫 Abstract & Motion": ["Glowing particle symphony"], "🌿 Nature & Landscape": ["Fog rolling over mountain ridge at dawn"]};
     
@@ -41,10 +43,90 @@ document.addEventListener('DOMContentLoaded', () => {
     function addToHistory(historyObject) { if (!historyObject || !historyObject.prompt) return; if (historyData.some(item => item.prompt === historyObject.prompt)) return; historyData.push(historyObject); if (historyData.length > 50) historyData.shift(); localStorage.setItem("veoPromptHistory_v3", JSON.stringify(historyData)); }
     function addToFavorite(prompt) { if (!prompt || favoriteData.includes(prompt)) return; favoriteData.push(prompt); localStorage.setItem("veoPromptFavorites_v2", JSON.stringify(favoriteData)); showNotification("Ditambahkan ke favorit!"); renderList('favorite', favoriteData); if (favBtn) favBtn.disabled = true; }
     function removeFavorite(prompt) { favoriteData = favoriteData.filter(fav => fav !== prompt); localStorage.setItem("veoPromptFavorites_v2", JSON.stringify(favoriteData)); showNotification("Dihapus dari favorit."); renderList('favorite', favoriteData); }
-    function populateMainNiche() { if (!mainNicheSelect) return; const currentValue = mainNicheSelect.value; mainNicheSelect.innerHTML = '<option value="" disabled selected>Pilih Kategori...</option>'; Object.keys(niches).sort().forEach(niche => { const opt = document.createElement("option"); opt.value = niche; opt.textContent = niche; mainNicheSelect.appendChild(opt); }); mainNicheSelect.value = currentValue; }
+    function getSortedNicheKeys() {
+        const keys = Object.keys(niches);
+        // Tentukan nama Kategori Utama yang ingin Anda sematkan di atas
+        const pinnedKey = "🌟 Weekly Trends";
+
+        // Pisahkan kategori lain dan urutkan berdasarkan abjad (mengabaikan emoji)
+        const otherKeys = keys.filter(k => k !== pinnedKey).sort((a, b) => {
+            const textA = a.includes(' ') ? a.substring(a.indexOf(' ') + 1) : a;
+            const textB = b.includes(' ') ? b.substring(b.indexOf(' ') + 1) : b;
+            return textA.localeCompare(textB);
+        });
+
+        // Jika kategori yang disematkan ada, letakkan di paling depan
+        if (keys.includes(pinnedKey)) {
+            return [pinnedKey, ...otherKeys];
+        }
+
+        // Jika tidak ada, kembalikan daftar yang sudah diurutkan saja
+        return otherKeys;
+    }
+    function populateMainNiche() {
+        if (!mainNicheSelect) return;
+        const currentValue = mainNicheSelect.value;
+        mainNicheSelect.innerHTML = '<option value="" disabled selected>Pilih Kategori...</option>';
+
+        // Menggunakan fungsi sort baru yang menyematkan 'Trends' di atas
+        const sortedKeys = getSortedNicheKeys();
+
+        sortedKeys.forEach(niche => {
+            const opt = document.createElement("option");
+            opt.value = niche;
+            opt.textContent = niche;
+            mainNicheSelect.appendChild(opt);
+        });
+
+        mainNicheSelect.value = currentValue;
+    }
     function populateSubNiche(main) { if (!subNicheSelect) return; const currentValue = subNicheSelect.value; subNicheSelect.innerHTML = '<option value="" disabled selected>Pilih Sub-Kategori...</option>'; subNicheSelect.disabled = true; generateBtn.disabled = true; generateBatchBtn.disabled = true; if (main && niches[main]) { [...niches[main]].sort().forEach(sub => { const opt = document.createElement("option"); opt.value = sub; opt.textContent = sub; subNicheSelect.appendChild(opt); }); subNicheSelect.disabled = false; subNicheSelect.value = currentValue; if(subNicheSelect.value) {generateBtn.disabled = false; generateBatchBtn.disabled = false;} } }
-    function populateNicheModalDropdown() { if (!mainNicheSelectForNewSub) return; const currentValue = mainNicheSelectForNewSub.value; mainNicheSelectForNewSub.innerHTML = ''; Object.keys(niches).sort().forEach(niche => { const opt = document.createElement("option"); opt.value = niche; opt.textContent = niche; mainNicheSelectForNewSub.appendChild(opt); }); mainNicheSelectForNewSub.value = currentValue || Object.keys(niches).sort()[0]; }
-    function renderNicheManagementList() { if (!nicheManagementList) return; nicheManagementList.innerHTML = ''; Object.keys(niches).sort().forEach(mainNiche => { const mainDiv = document.createElement('div'); mainDiv.className = 'niche-item'; mainDiv.innerHTML = `<span>${mainNiche}</span><button class="delete-niche-btn" data-main-niche="${mainNiche}">&times;</button>`; nicheManagementList.appendChild(mainDiv); if (niches[mainNiche]?.length > 0) { niches[mainNiche].sort().forEach(subNiche => { const subDiv = document.createElement('div'); subDiv.className = 'sub-niche-item'; subDiv.innerHTML = `<span><span class="sub-niche-icon">↳</span>${subNiche}</span><button class="delete-niche-btn" data-main-niche="${mainNiche}" data-sub-niche="${subNiche}">&times;</button>`; nicheManagementList.appendChild(subDiv); }); } }); }
+    function populateNicheModalDropdown() { if (!mainNicheSelectForNewSub) return; const currentValue = mainNicheSelectForNewSub.value; mainNicheSelectForNewSub.innerHTML = ''; getSortedNicheKeys().forEach(niche => { const opt = document.createElement("option"); opt.value = niche; opt.textContent = niche; mainNicheSelectForNewSub.appendChild(opt); }); mainNicheSelectForNewSub.value = currentValue || Object.keys(niches).sort()[0]; }
+    function renderNicheManagementList() {
+        if (!nicheManagementList) return;
+        nicheManagementList.innerHTML = '';
+        
+        getSortedNicheKeys().forEach(mainNiche => {
+            // Membuat item Kategori Utama
+            const mainDiv = document.createElement('div');
+            mainDiv.className = 'niche-item';
+            mainDiv.innerHTML = `
+                <span>${mainNiche}</span>
+                <div class="management-actions">
+                    <button class="icon-button edit-btn" title="Edit Nama" data-main-niche="${mainNiche}">✏️</button>
+                    <button class="icon-button delete-niche-btn" title="Hapus" data-main-niche="${mainNiche}">🗑️</button>
+                </div>
+            `;
+            nicheManagementList.appendChild(mainDiv);
+
+            // Membuat wadah untuk sub-niche
+            const subContainer = document.createElement('div');
+            subContainer.className = 'sub-niche-container';
+
+            // Mengisi wadah dengan sub-niche
+            if (niches[mainNiche]?.length > 0) {
+                niches[mainNiche].forEach(subNiche => {
+                    const subDiv = document.createElement('div');
+                    subDiv.className = 'sub-niche-item';
+                    subDiv.innerHTML = `
+                        <span><span class="sub-niche-icon">↳</span>${subNiche}</span>
+                        <div class="management-actions">
+                            <button class="icon-button edit-btn" title="Edit Nama" data-main-niche="${mainNiche}" data-sub-niche="${subNiche}">✏️</button>
+                            <button class="icon-button delete-niche-btn" title="Hapus" data-main-niche="${mainNiche}" data-sub-niche="${subNiche}">🗑️</button>
+                        </div>
+                    `;
+                    subContainer.appendChild(subDiv);
+                });
+            }
+            nicheManagementList.appendChild(subContainer);
+        });
+    }
+    function resetEditState() {
+        editingItem = null;
+        newMainNicheInput.value = '';
+        newSubNicheInput.value = '';
+        if (cancelEditBtn) cancelEditBtn.style.display = 'none';
+    }
     function showModalNotification(text) { if (!modalNotif) return; modalNotif.textContent = text; modalNotif.classList.add('show'); setTimeout(() => modalNotif.classList.remove('show'), 2000); }
     function renderApiKeyList() {
         if (!apiKeyManagementList) return;
@@ -167,6 +249,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    if (getEl('sortNichesBtn')) {
+        getEl('sortNichesBtn').addEventListener('click', () => {
+            // Urutkan semua sub-niche di dalam setiap main-niche
+            for (const mainNiche in niches) {
+                if (Array.isArray(niches[mainNiche])) {
+                    niches[mainNiche].sort();
+                }
+            }
+            handleNicheUpdate(); // Simpan dan render ulang
+            showModalNotification("Semua sub-niche telah diurutkan!");
+        });
+    }
+
     if (generateBtn) { generateBtn.addEventListener("click", () => { if (!subNicheSelect.value) return; output.textContent = "Generating..."; generateSinglePrompt(subNicheSelect.value); }); }
     if (generateBatchBtn) { generateBatchBtn.addEventListener('click', async () => { const sub = subNicheSelect.value; const count = parseInt(batchCountInput.value, 10); if (!sub || !count) { showNotification("Pilih sub-kategori dan tentukan jumlah."); return; } setButtonsState(true); showNotification(`Meminta ${count} prompt...`); const batchTabBtn = document.querySelector('.main-tab-button[data-tab="batch-results"]'); if (batchResultList) { batchResultList.innerHTML = `<div class="empty-queue">Meminta ${count} prompt ke AI...</div>`; if(exportBatchResultsBtn) exportBatchResultsBtn.disabled = true; if (batchTabBtn) batchTabBtn.click(); } const result = await window.api.generateBatchPrompts({ sub, count }); setButtonsState(false); if (result.error) { showNotification(`Error: ${result.error}`); if (batchResultList) batchResultList.innerHTML = `<div class="empty-queue">Error: ${result.error}</div>`; } else if (result.success) { displayBatchResults(result.prompts); } }); }
     if (exportBatchResultsBtn) {
@@ -278,9 +374,107 @@ document.addEventListener('DOMContentLoaded', () => {
     if (manageNichesBtn) { manageNichesBtn.addEventListener('click', () => { populateNicheModalDropdown(); renderNicheManagementList(); nicheModal.showModal(); }); }
     if (closeNicheModal) { closeNicheModal.addEventListener('click', () => nicheModal.close()); }
     if (nicheModal) { nicheModal.addEventListener('click', (e) => { const rect = nicheModal.getBoundingClientRect(); if (e.clientY < rect.top || e.clientY > rect.bottom || e.clientX < rect.left || e.clientX > rect.right) { nicheModal.close(); } }); }
-    if (addMainNicheBtn) { addMainNicheBtn.addEventListener('click', () => { const newNiche = newMainNicheInput.value.trim(); if (newNiche && !niches[newNiche]) { niches[newNiche] = []; newMainNicheInput.value = ''; showModalNotification("Kategori utama ditambahkan!"); handleNicheUpdate(); } }); }
-    if (addSubNicheBtn) { addSubNicheBtn.addEventListener('click', () => { const selectedMain = mainNicheSelectForNewSub.value; const newSub = newSubNicheInput.value.trim(); if (selectedMain && newSub && !niches[selectedMain].includes(newSub)) { niches[selectedMain].push(newSub); newSubNicheInput.value = ''; showModalNotification("Sub-kategori ditambahkan!"); handleNicheUpdate(); } }); }
-    if (nicheManagementList) { nicheManagementList.addEventListener('click', (e) => { if (e.target.classList.contains('delete-niche-btn')) { if (confirm('Yakin ingin menghapus item ini?')) { const main = e.target.dataset.mainNiche; const sub = e.target.dataset.subNiche; if (main && sub) { const index = niches[main].indexOf(sub); if (index > -1) niches[main].splice(index, 1); } else if (main) { delete niches[main]; } handleNicheUpdate(); } } }); }
+    if (addMainNicheBtn) {
+        addMainNicheBtn.addEventListener('click', () => {
+            const newMainName = newMainNicheInput.value.trim();
+            if (!newMainName) return;
+
+            if (editingItem && editingItem.main && !editingItem.sub) { // Mode Edit
+                if (niches[newMainName]) {
+                    return showModalNotification("Nama kategori utama tersebut sudah ada!", "error");
+                }
+                niches[newMainName] = niches[editingItem.main];
+                delete niches[editingItem.main];
+                showModalNotification("Kategori utama berhasil diubah!");
+                resetEditState();
+            } else { // Mode Tambah Baru
+                if (niches[newMainName]) {
+                    return showModalNotification("Nama kategori utama tersebut sudah ada!", "error");
+                }
+                niches[newMainName] = [];
+                showModalNotification("Kategori utama ditambahkan!");
+            }
+            newMainNicheInput.value = '';
+            handleNicheUpdate();
+        });
+    }
+    if (addSubNicheBtn) {
+        addSubNicheBtn.addEventListener('click', () => {
+            const newParent = mainNicheSelectForNewSub.value;
+            const newSubName = newSubNicheInput.value.trim();
+            if (!newParent || !newSubName) return;
+
+            if (editingItem && editingItem.main && editingItem.sub) { // Mode Edit / Pindah
+                const originalParent = editingItem.main;
+                const originalSubName = editingItem.sub;
+
+                // Cek duplikat di lokasi baru
+                if (newParent !== originalParent && niches[newParent].includes(newSubName)) {
+                    return showModalNotification("Sub-niche dengan nama ini sudah ada di kategori tujuan.", "error");
+                }
+
+                // 1. Hapus sub-niche dari induk lamanya
+                niches[originalParent] = niches[originalParent].filter(s => s !== originalSubName);
+
+                // 2. Tambahkan sub-niche (dengan nama baru jika diubah) ke induk barunya
+                niches[newParent].push(newSubName);
+
+                showModalNotification("Sub-kategori berhasil diubah/dipindahkan!");
+                resetEditState();
+
+            } else { // Mode Tambah Baru (logika ini tetap sama)
+                if (niches[newParent].includes(newSubName)) {
+                    return showModalNotification("Nama sub-kategori tersebut sudah ada!", "error");
+                }
+                niches[newParent].push(newSubName);
+                showModalNotification("Sub-kategori ditambahkan!");
+            }
+
+            newSubNicheInput.value = '';
+            handleNicheUpdate();
+        });
+    }
+    if (nicheManagementList) {
+        nicheManagementList.addEventListener('click', (e) => {
+            const button = e.target.closest('.icon-button');
+            const mainNicheItem = e.target.closest('.niche-item');
+
+            if (button) { // Jika yang diklik adalah tombol (Edit/Hapus)
+                e.stopPropagation(); // Hentikan event agar tidak membuka/menutup accordion
+                const main = button.dataset.mainNiche;
+                const sub = button.dataset.subNiche;
+
+                if (button.classList.contains('delete-niche-btn')) {
+                    // Logika hapus (tetap sama)
+                    if (confirm('Yakin ingin menghapus item ini?')) {
+                        if (main && sub) {
+                            niches[main] = niches[main].filter(s => s !== sub);
+                        } else if (main) {
+                            delete niches[main];
+                        }
+                        handleNicheUpdate();
+                    }
+                } else if (button.classList.contains('edit-btn')) {
+                    // Logika edit (tetap sama)
+                    editingItem = { main, sub };
+                    cancelEditBtn.style.display = 'block';
+                    if (sub) {
+                        mainNicheSelectForNewSub.value = main;
+                        newSubNicheInput.value = sub;
+                        newSubNicheInput.focus();
+                    } else {
+                        newMainNicheInput.value = main;
+                        newMainNicheInput.focus();
+                    }
+                }
+            } else if (mainNicheItem) { // Jika yang diklik adalah area Kategori Utama
+                mainNicheItem.classList.toggle('expanded');
+            }
+        });
+    }
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', resetEditState);
+    }
     
     // Listener Auto-Update
     
