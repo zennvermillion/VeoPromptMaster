@@ -348,7 +348,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     if(downloadBtn) { downloadBtn.addEventListener('click', () => { if(updateAvailableInfo) updateAvailableInfo.hidden = true; if(downloadProgressInfo) downloadProgressInfo.hidden = false; window.api.startDownload(); }); }
     if(laterBtn) { laterBtn.addEventListener('click', () => { if(updateNotification) updateNotification.classList.remove('active'); }); }
-    if (restartBtn) { restartBtn.addEventListener('click', () => { restartBtn.textContent = 'Restarting...'; restartBtn.disabled = true; setTimeout(() => { window.api.restartApp(); }, 1000); }); }
+    if (restartBtn) {
+        restartBtn.addEventListener('click', () => {
+            restartBtn.textContent = 'Restarting...';
+            restartBtn.disabled = true;
+            // Kirim pesan untuk restart melalui jembatan yang baru dibuat
+            window.api.restartApp();
+        });
+    }
 
     initializeApp();
 });

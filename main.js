@@ -134,16 +134,19 @@ autoUpdater.on('download-progress', (progressObj) => {
 });
 
 autoUpdater.on('update-downloaded', (info) => {
-    log.info('Update downloaded; will install now', info);
-    mainWindow.webContents.send('update_downloaded');
-    setTimeout(() => {
-        autoUpdater.quitAndInstall(true, true);
-    }, 2000); // Beri waktu 2 detik bagi UI untuk menampilkan pesan "Restarting..."
+    log.info('Update downloaded. Waiting for user to restart.');
+    // Hanya kirim pesan ke UI, jangan paksa restart
+    mainWindow.webContents.send('update_downloaded', info);
 });
 
 ipcMain.on('start_download', () => {
     log.info('User initiated download.');
     autoUpdater.downloadUpdate();
+});
+
+ipcMain.on('restart_app', () => {
+    log.info('User initiated restart from renderer.');
+    autoUpdater.quitAndInstall();
 });
 
 function startWatching(win, folderPath) {
