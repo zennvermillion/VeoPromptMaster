@@ -150,6 +150,39 @@ document.addEventListener('DOMContentLoaded', () => {
             apiKeyManagementList.appendChild(itemDiv);
         });
     }
+    // --- MANAJEMEN UI AUTO-UPDATE (VERSI BARU) ---
+
+    // Fungsi terpusat untuk mengelola semua status UI notifikasi
+    function handleUpdateState(state, data = {}) {
+        if (!updateNotification) return;
+
+        // Sembunyikan semua bagian notifikasi terlebih dahulu
+        updateAvailableInfo.hidden = true;
+        downloadProgressInfo.hidden = true;
+        updateInstallingInfo.hidden = true;
+        updateNotification.hidden = true;
+
+        switch (state) {
+            case 'available':
+                updateVersionInfo.textContent = `Update v${data.version} tersedia!`;
+                updateAvailableInfo.hidden = false;
+                updateNotification.hidden = false;
+                break;
+            case 'progress':
+                downloadProgressBar.style.width = `${Math.round(data.percent)}%`;
+                downloadPercent.textContent = `${Math.round(data.percent)}%`;
+                downloadProgressInfo.hidden = false;
+                updateNotification.hidden = false;
+                break;
+            case 'downloaded':
+                updateInstallingInfo.hidden = false;
+                updateNotification.hidden = false;
+                break;
+            case 'hidden':
+                // Biarkan semua tersembunyi
+                break;
+        }
+    }
 
     // --- Fungsi Inti ---
     async function generateSinglePrompt(sub) { try { setButtonsState(true); const result = await window.api.generatePrompt({ sub }); if (result.error) throw new Error(result.error); if(result.success) { currentPrompt = result.prompt; negativePromptText = Array.isArray(result.negative_prompt) ? result.negative_prompt.join(', ') : ''; output.textContent = currentPrompt; negativePromptOutput.textContent = negativePromptText; negativePromptSection.hidden = false; startSessionBtn.hidden = false; copyBtn.disabled = false; favBtn.disabled = favoriteData.includes(currentPrompt); addToHistory({ subNiche: sub, prompt: currentPrompt, negative_prompt: result.negative_prompt }); } else { throw new Error("Respons AI tidak valid."); } } catch (err) { output.textContent = `Error: ${err.message}`; } finally { setButtonsState(false); } }
@@ -218,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
             actionsDiv.appendChild(copyBtnIcon);
             actionsDiv.appendChild(favBtnIcon);
             actionsDiv.appendChild(delBtnIcon);
-            
+
             div.appendChild(textSpan);
             div.appendChild(actionsDiv);
             batchResultList.appendChild(div);
@@ -503,10 +536,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Listener Auto-Update
-    
-    window.api.onUpdateAvailable((info) => { if(updateNotification) updateNotification.classList.add('active'); if(updateVersionInfo) updateVersionInfo.textContent = `Update v${info.version} tersedia!`; if(updateAvailableInfo) updateAvailableInfo.hidden = false; if(downloadProgressInfo) downloadProgressInfo.hidden = true; if(updateInstallingInfo) updateInstallingInfo.hidden = true; });
-    window.api.onDownloadProgress((percent) => { if(downloadProgressBar) downloadProgressBar.style.width = `${Math.round(percent)}%`; if(downloadPercent) downloadPercent.textContent = `${Math.round(percent)}%`; });
-    window.api.onUpdateDownloaded(() => { if(updateAvailableInfo) updateAvailableInfo.hidden = true; if(downloadProgressInfo) downloadProgressInfo.hidden = true; if(updateInstallingInfo) updateInstallingInfo.hidden = false; });
+    window.api.onUpdateAvailable((info) => handleUpdateState('available', info));
+    window.api.onDownloadProgress((percent) => handleUpdateState('progress', { percent }));
+    window.api.onUpdateDownloaded((info) => handleUpdateState('downloaded', info));
     window.api.onSetTheme((theme) => {
     applyMode(theme);
     });
@@ -565,13 +597,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-    if(downloadBtn) { downloadBtn.addEventListener('click', () => { if(updateAvailableInfo) updateAvailableInfo.hidden = true; if(downloadProgressInfo) downloadProgressInfo.hidden = false; window.api.startDownload(); }); }
-    if(laterBtn) { laterBtn.addEventListener('click', () => { if(updateNotification) updateNotification.classList.remove('active'); }); }
-    if(restartBtn) {
+    if (laterBtn) {
+        laterBtn.addEventListener('click', () => {
+            handleUpdateState('hidden');
+        });
+    }
+
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', () => {
+            handleUpdateState('progress', { percent: 0 }); // Langsung tampilkan progress bar
+            window.api.startDownload();
+        });
+    }
+
+    if (restartBtn) {
         restartBtn.addEventListener('click', () => {
             restartBtn.textContent = 'Restarting...';
             restartBtn.disabled = true;
-            // Kirim pesan untuk restart melalui jembatan yang baru dibuat
             window.api.restartApp();
         });
     }

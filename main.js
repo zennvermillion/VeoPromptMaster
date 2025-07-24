@@ -137,10 +137,10 @@ autoUpdater.on('update-not-available', (info) => {
 });
 
 autoUpdater.on('error', (err) => {
-    log.error('Error in auto-updater. ' + err);
-    // Hanya tampilkan dialog jika pengecekan manual
+    const errorMessage = err ? (err.message || err) : 'Unknown error';
+    log.error('Auto-updater error:', errorMessage);
     if (isManualCheck) {
-        dialog.showErrorBox('Update Error', `Gagal memeriksa pembaruan: ${err.message}`);
+        dialog.showErrorBox('Update Error', `Gagal memeriksa pembaruan: ${errorMessage}`);
     }
 });
 
