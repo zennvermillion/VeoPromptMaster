@@ -85,6 +85,13 @@ button.secondary:hover { background-color: var(--bg-card); border-color: var(--a
 .generate-meta-queue-btn.processed { background-color: var(--success-color); color: var(--bg-app); cursor: default; }
 .empty-queue { text-align: center; padding: 40px; color: var(--text-muted); border: 2px dashed var(--border-color); border-radius: 8px; }
 .list-view-card { flex-grow: 1; min-height: 0; padding: 0; border: none; background: none; }
+.list-view-footer {
+    display: flex; /* Menyusun tombol secara horizontal */
+    gap: 10px; /* Memberi jarak antar tombol */
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+    flex-shrink: 0; /* Mencegah footer menyusut */
+}
 .history-favorite-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; height: 100%; }
 .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background-color: var(--bg-app); border-radius: 6px; border: 1px solid transparent; transition: border-color 0.2s ease; }
 .list-item:hover { border-color: var(--accent-color); }

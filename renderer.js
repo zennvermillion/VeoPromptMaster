@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const getEl = (id) => document.getElementById(id);
     const mainNicheSelect=getEl("mainNiche"), subNicheSelect=getEl("subNiche"), generateBtn=getEl("generateBtn"), output=getEl("output"), copyBtn=getEl("copyBtn"), favBtn=getEl("favBtn"), historyListEl=getEl("historyList"), favoriteListEl=getEl("favoriteList"), notif=getEl("notif"), startSessionBtn=getEl("startSessionBtn"), manageNichesBtn=getEl("manageNichesBtn"), nicheModal=getEl("nicheModal"), closeNicheModal=getEl("closeNicheModal"), newMainNicheInput=getEl("newMainNicheInput"), addMainNicheBtn=getEl("addMainNicheBtn"), mainNicheSelectForNewSub=getEl("mainNicheSelectForNewSub"), newSubNicheInput=getEl("newSubNicheInput"), addSubNicheBtn=getEl("addSubNicheBtn"), nicheManagementList=getEl("nicheManagementList"), appVersionEl=getEl("appVersion"), modalNotif=getEl("modalNotif"), exportCounter=getEl("exportCounter"), progressBar=getEl("progressBar"), exportCsvBtn=getEl("exportCsvBtn"), clearBatchBtn=getEl("clearBatchBtn"), selectFolderBtn = getEl("selectFolderBtn"), watchedFolderPathEl = getEl("watchedFolderPath"), productionQueueEl = getEl("productionQueue"), activePromptDisplay = getEl("activePromptDisplay"), negativePromptSection = getEl("negativePromptSection"), negativePromptOutput = getEl("negativePromptOutput"), copyNegativeBtn = getEl("copyNegativeBtn");
     const generateBatchBtn = getEl("generateBatchBtn"), batchCountInput = getEl("batchCount"), batchResultList = getEl("batchResultList"), exportBatchResultsBtn = getEl("exportBatchResultsBtn");
+    const clearBatchResultsBtn = getEl("clearBatchResultsBtn");
     const tabButtons = document.querySelectorAll(".main-tab-button"), tabContents = document.querySelectorAll(".tab-content");
     const updateNotification = getEl('update-notification'), updateVersionInfo = getEl('update-version-info'), updateAvailableInfo = getEl('update-available-info'), laterBtn = getEl('later-btn'), downloadBtn = getEl('download-btn');
     const downloadProgressInfo = getEl('download-progress-info'), downloadPercent = getEl('download-percent'), downloadProgressBar = getEl('download-progress-bar');
@@ -156,16 +157,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!batchResultList) return;
         currentBatchResults = prompts;
         batchResultList.innerHTML = '';
-        if (!prompts || prompts.length === 0) {
+
+        const hasPrompts = prompts && prompts.length > 0;
+        exportBatchResultsBtn.disabled = !hasPrompts;
+        clearBatchResultsBtn.disabled = !hasPrompts;
+
+        if (!hasPrompts) {
             batchResultList.innerHTML = `<div class="empty-queue">Tidak ada hasil.</div>`;
-            exportBatchResultsBtn.disabled = true;
             return;
         }
-        exportBatchResultsBtn.disabled = false;
+        
         prompts.forEach(item => {
-            // Kita tidak perlu merakit prompt lagi, langsung ambil dari 'item.prompt'
             const promptText = item.prompt;
-
             const div = document.createElement("div");
             div.className = 'list-item';
             const textSpan = document.createElement('span');
@@ -201,8 +204,21 @@ document.addEventListener('DOMContentLoaded', () => {
             favBtnIcon.innerHTML = ICONS.favorite;
             favBtnIcon.addEventListener('click', () => addToFavorite(promptText));
 
+            const delBtnIcon = document.createElement('button');
+            delBtnIcon.className = 'icon-button';
+            delBtnIcon.title = 'Hapus';
+            delBtnIcon.innerHTML = ICONS.trash;
+            delBtnIcon.addEventListener('click', () => {
+                // Hapus item dari array dan render ulang daftarnya
+                currentBatchResults = currentBatchResults.filter(p => p.prompt !== promptText);
+                displayBatchResults(currentBatchResults);
+                showNotification("Prompt dihapus dari hasil batch.");
+            });
+
             actionsDiv.appendChild(copyBtnIcon);
             actionsDiv.appendChild(favBtnIcon);
+            actionsDiv.appendChild(delBtnIcon);
+            
             div.appendChild(textSpan);
             div.appendChild(actionsDiv);
             batchResultList.appendChild(div);
@@ -285,6 +301,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.setItem('veoMetadataBatch_v2', JSON.stringify(metadataBatch));
                     updateExportUI();
                     showNotification('Batch ekspor dibersihkan!');
+                }
+            });
+        }
+
+    if (clearBatchResultsBtn) {
+            clearBatchResultsBtn.addEventListener('click', () => {
+                if (currentBatchResults.length > 0 && confirm('Anda yakin ingin menghapus semua hasil batch ini?')) {
+                    currentBatchResults = [];
+                    displayBatchResults(currentBatchResults);
+                    showNotification('Semua hasil batch telah dihapus.');
                 }
             });
         }
@@ -541,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     if(downloadBtn) { downloadBtn.addEventListener('click', () => { if(updateAvailableInfo) updateAvailableInfo.hidden = true; if(downloadProgressInfo) downloadProgressInfo.hidden = false; window.api.startDownload(); }); }
     if(laterBtn) { laterBtn.addEventListener('click', () => { if(updateNotification) updateNotification.classList.remove('active'); }); }
-    if (restartBtn) {
+    if(restartBtn) {
         restartBtn.addEventListener('click', () => {
             restartBtn.textContent = 'Restarting...';
             restartBtn.disabled = true;
