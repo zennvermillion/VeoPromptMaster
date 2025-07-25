@@ -193,39 +193,48 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleUpdateState(state, data = {}) {
         if (!updateNotification) return;
 
-        // Sembunyikan semua bagian notifikasi terlebih dahulu
+        // Sembunyikan semua sub-bagian notifikasi
         updateAvailableInfo.hidden = true;
         downloadProgressInfo.hidden = true;
         updateInstallingInfo.hidden = true;
         
-        // **[PERUBAHAN]** Atur display ke 'none' secara default
-        updateNotification.style.display = 'none'; 
+        // Atur status awal saat fungsi dipanggil
+        updateNotification.hidden = true;     // Gunakan .hidden untuk memicu aturan CSS [hidden]
+        updateNotification.style.display = ''; // Hapus inline style display jika ada
 
         switch (state) {
             case 'available':
                 updateVersionInfo.textContent = `Update v${data.version} tersedia!`;
                 updateAvailableInfo.hidden = false;
-                // **[PERUBAHAN]** Ubah display menjadi 'flex' untuk menampilkan notifikasi
-                updateNotification.style.display = 'flex'; 
+                
+                // [PERBAIKAN KUNCI] Hapus atribut 'hidden' DAN atur display secara eksplisit
+                updateNotification.hidden = false; 
+                updateNotification.style.display = 'flex';
                 break;
+                
             case 'progress':
                 downloadProgressBar.style.width = `${Math.round(data.percent)}%`;
                 downloadPercent.textContent = `${Math.round(data.percent)}%`;
                 downloadProgressInfo.hidden = false;
-                // **[PERUBAHAN]** Pastikan notifikasi tetap terlihat selama download
-                updateNotification.style.display = 'flex'; 
-                break;
-            case 'downloaded':
-                updateInstallingInfo.hidden = false;
-                // **[PERUBAHAN]** Pastikan notifikasi tetap terlihat saat download selesai
+                
+                // Lakukan hal yang sama untuk status progress
+                updateNotification.hidden = false;
                 updateNotification.style.display = 'flex';
                 break;
+                
+            case 'downloaded':
+                updateInstallingInfo.hidden = false;
+                
+                // Lakukan hal yang sama untuk status downloaded
+                updateNotification.hidden = false;
+                updateNotification.style.display = 'flex';
+                break;
+                
             case 'hidden':
-                // Biarkan 'display' tetap 'none' seperti yang sudah diatur di atas
+                // Biarkan 'hidden' tetap true dan display kosong
                 break;
         }
     }
-
     // --- Fungsi Inti ---
     async function generateSinglePrompt(sub) { try { setButtonsState(true); const result = await window.api.generatePrompt({ sub }); if (result.error) throw new Error(result.error); if(result.success) { currentPrompt = result.prompt; negativePromptText = Array.isArray(result.negative_prompt) ? result.negative_prompt.join(', ') : ''; output.textContent = currentPrompt; negativePromptOutput.textContent = negativePromptText; negativePromptSection.hidden = false; startSessionBtn.hidden = false; copyBtn.disabled = false; favBtn.disabled = favoriteData.includes(currentPrompt); addToHistory({ subNiche: sub, prompt: currentPrompt, negative_prompt: result.negative_prompt }); } else { throw new Error("Respons AI tidak valid."); } } catch (err) { output.textContent = `Error: ${err.message}`; } finally { setButtonsState(false); } }
     function displayBatchResults(prompts) {
