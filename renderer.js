@@ -193,28 +193,32 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleUpdateState(state, data = {}) {
         if (!updateNotification) return;
 
+        // Sembunyikan semua bagian notifikasi terlebih dahulu
         updateAvailableInfo.hidden = true;
         downloadProgressInfo.hidden = true;
         updateInstallingInfo.hidden = true;
         
-        // **[PERUBAHAN]** Mengontrol visibilitas dengan style 'display'
+        // **[PERUBAHAN]** Atur display ke 'none' secara default
         updateNotification.style.display = 'none'; 
 
         switch (state) {
             case 'available':
                 updateVersionInfo.textContent = `Update v${data.version} tersedia!`;
                 updateAvailableInfo.hidden = false;
-                updateNotification.style.display = 'flex'; // Tampilkan bar notifikasi
+                // **[PERUBAHAN]** Ubah display menjadi 'flex' untuk menampilkan notifikasi
+                updateNotification.style.display = 'flex'; 
                 break;
             case 'progress':
                 downloadProgressBar.style.width = `${Math.round(data.percent)}%`;
                 downloadPercent.textContent = `${Math.round(data.percent)}%`;
                 downloadProgressInfo.hidden = false;
-                updateNotification.style.display = 'flex'; // Tampilkan bar notifikasi
+                // **[PERUBAHAN]** Pastikan notifikasi tetap terlihat selama download
+                updateNotification.style.display = 'flex'; 
                 break;
             case 'downloaded':
                 updateInstallingInfo.hidden = false;
-                updateNotification.style.display = 'flex'; // Tampilkan bar notifikasi
+                // **[PERUBAHAN]** Pastikan notifikasi tetap terlihat saat download selesai
+                updateNotification.style.display = 'flex';
                 break;
             case 'hidden':
                 // Biarkan 'display' tetap 'none' seperti yang sudah diatur di atas
