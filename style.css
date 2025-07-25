@@ -143,23 +143,62 @@ button.secondary:hover { background-color: var(--bg-card); border-color: var(--a
     justify-content: center;
     line-height: 1;
 }
-#notif { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: var(--success-color); color: var(--bg-app); padding: 12px 24px; border-radius: 6px; font-weight: 600; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
-#notif.show { opacity: 1; visibility: visible; }
+#notif {
+    position: fixed;
+    bottom: 20px;
+    right: -400px; /* Mulai dari luar layar */
+    width: 350px; /* Beri lebar agar konsisten */
+    padding: 12px 20px;
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    opacity: 0;
+    transition: right 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+#notif.show {
+    right: 20px; /* Geser ke posisi terlihat */
+    opacity: 1;
+}
+
 dialog {
-    max-width: 90vw;
     border: 1px solid var(--border-color);
     border-radius: 12px;
     background-color: var(--bg-sidebar);
     color: var(--text-primary);
     padding: 0;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.2);
 }
 
+/* Atur lebar spesifik untuk setiap modal */
 #nicheModal {
-    width: 800px;
+    width: 850px;
 }
 
 #apiKeyModal {
-    width: 350px; 
+    width: 450px;
+    max-height: 80vh; /* Batasi tinggi modal hingga 80% dari tinggi layar */
+}
+
+
+/* Menghapus padding default dari modal-content di modal ini */
+#apiKeyModal .modal-content {
+    grid-template-columns: 1fr;
+}
+
+/* Mengatur ulang header modal agar sesuai dengan card */
+#apiKeyModal .modal-header {
+    border: none;
+    padding: 20px 20px 16px;
+}
+
+/* Menyesuaikan daftar agar tidak memiliki border ganda */
+#apiKeyModal #apiKeyManagementList {
+    border: 1px solid var(--border-color);
+    padding: 10px;
 }
 
 dialog::backdrop {
@@ -170,7 +209,12 @@ dialog::backdrop {
 dialog::backdrop { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
 .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border-color); }
 .close-button { background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; }
-.modal-content { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; }
+.modal-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Kembali menjadi dua kolom */
+    gap: 20px;
+    padding: 20px;
+}
 .modal-input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
 .niche-management-list { max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; }
 .niche-item, .sub-niche-item {

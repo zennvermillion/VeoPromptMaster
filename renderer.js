@@ -31,7 +31,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const defaultNiches = { "💫 Abstract & Motion": ["Glowing particle symphony"], "🌿 Nature & Landscape": ["Fog rolling over mountain ridge at dawn"]};
     
     // --- FUNGSI BANTUAN (LENGKAP) ---
-    function showNotification(text) { if(notif) { notif.textContent = text; notif.classList.add('show'); setTimeout(() => notif.classList.remove('show'), 2500); } }
+    function showNotification(text, type = 'success') {
+        if (!notif) return;
+
+        // Hapus timeout sebelumnya jika ada notifikasi aktif
+        if (notif.timeoutId) clearTimeout(notif.timeoutId);
+
+        notif.textContent = text;
+        
+        // (Opsional) Beri warna border berbeda untuk error
+        notif.style.borderColor = type === 'error' ? 'var(--error-color)' : 'var(--success-color)';
+        
+        // Tampilkan notifikasi
+        notif.classList.add('show');
+
+        // Atur timer untuk menyembunyikan notifikasi setelah 3 detik
+        notif.timeoutId = setTimeout(() => {
+            notif.classList.remove('show');
+        }, 5000);
+    }
     function setButtonsState(isLoading) { if (generateBtn) generateBtn.disabled = isLoading; if (generateBatchBtn) generateBatchBtn.disabled = isLoading; }
     function applyMode(theme) { 
     document.documentElement.setAttribute("data-theme", theme); }
@@ -130,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function showModalNotification(text) { if (!modalNotif) return; modalNotif.textContent = text; modalNotif.classList.add('show'); setTimeout(() => modalNotif.classList.remove('show'), 2000); }
     function renderApiKeyList() {
-        if (!apiKeyManagementList) return;
+    if (!apiKeyManagementList) return;
         apiKeyManagementList.innerHTML = '';
         if (apiKeys.length === 0) {
             apiKeyManagementList.innerHTML = '<div class="niche-item"><span>Belum ada API key.</span></div>';
@@ -140,14 +158,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'niche-item';
             
-            // Samarkan key untuk keamanan
             const maskedKey = `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
             
-            itemDiv.innerHTML = `
-                <span>Key ${index + 1}: ${maskedKey}</span>
-                <button class="delete-niche-btn" data-key-index="${index}">&times;</button>
-            `;
+            const span = document.createElement('span');
+            span.textContent = `Key ${index + 1}: ${maskedKey}`;
+
+            const delButton = document.createElement('button');
+            delButton.className = 'icon-button delete-api-key-btn'; // Menggunakan class yang lebih spesifik
+            delButton.title = 'Hapus API Key';
+            delButton.dataset.keyIndex = index;
+            delButton.innerHTML = ICONS.trash; // Menggunakan ikon trash dari set ICONS Anda
+
+            itemDiv.appendChild(span);
+            itemDiv.appendChild(delButton);
             apiKeyManagementList.appendChild(itemDiv);
+        });
+    }
+    if (apiKeyManagementList) {
+        apiKeyManagementList.addEventListener('click', async (e) => {
+            // Cari tombol dengan class yang sudah diperbarui
+            const delButton = e.target.closest('.delete-api-key-btn');
+            if (delButton) {
+                const indexToDelete = parseInt(delButton.dataset.keyIndex, 10);
+                if (confirm('Yakin ingin menghapus API key ini?')) {
+                    apiKeys.splice(indexToDelete, 1);
+                    await window.api.saveApiKeys(apiKeys);
+                    renderApiKeyList();
+                }
+            }
         });
     }
     // --- MANAJEMEN UI AUTO-UPDATE (VERSI BARU) ---
@@ -400,11 +438,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 await window.api.saveApiKeys(apiKeys);
                 newApiKeyInput.value = '';
                 renderApiKeyList();
-                showNotification("API Key baru berhasil ditambahkan!");
+                showModalNotification("API Key baru berhasil ditambahkan!");
             } else if (!newKey) {
-                showNotification("Input tidak boleh kosong.", "error");
+                showModalNotification("Input tidak boleh kosong.", "error");
             } else {
-                showNotification("API Key tersebut sudah ada.", "error");
+                showModalNotification("API Key tersebut sudah ada.", "error");
             }
         });
     }
