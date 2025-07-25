@@ -139,6 +139,7 @@ autoUpdater.on('update-not-available', (info) => {
 autoUpdater.on('error', (err) => {
     const errorMessage = err ? (err.message || err) : 'Unknown error';
     log.error('Auto-updater error:', errorMessage);
+    mainWindow.webContents.send('download_error', errorMessage);
     if (isManualCheck) {
         dialog.showErrorBox('Update Error', `Gagal memeriksa pembaruan: ${errorMessage}`);
     }

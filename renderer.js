@@ -197,10 +197,9 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAvailableInfo.hidden = true;
         downloadProgressInfo.hidden = true;
         updateInstallingInfo.hidden = true;
-        
-        // Atur status awal saat fungsi dipanggil
-        updateNotification.hidden = true;     // Gunakan .hidden untuk memicu aturan CSS [hidden]
-        updateNotification.style.display = ''; // Hapus inline style display jika ada
+
+        updateNotification.hidden = true;
+        updateNotification.style.display = '';
 
         switch (state) {
             case 'available':
@@ -226,6 +225,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateInstallingInfo.hidden = false;
                 
                 // Lakukan hal yang sama untuk status downloaded
+                updateNotification.hidden = false;
+                updateNotification.style.display = 'flex';
+                break;
+
+            case 'error':
+                updateVersionInfo.textContent = `Gagal mengunduh: Coba lagi nanti.`;
+                // Tampilkan tombol "Nanti Saja" dan ubah tombol "Download" menjadi "Coba Lagi"
+                laterBtn.textContent = 'Tutup';
+                downloadBtn.textContent = 'Coba Lagi';
+                updateAvailableInfo.hidden = false; // Tampilkan lagi bagian tombol
                 updateNotification.hidden = false;
                 updateNotification.style.display = 'flex';
                 break;
@@ -590,7 +599,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.api.onUpdateAvailable((info) => handleUpdateState('available', info));
     window.api.onDownloadProgress((percent) => handleUpdateState('progress', { percent }));
     window.api.onUpdateDownloaded((info) => handleUpdateState('downloaded', info));
-    window.api.onSetTheme((theme) => {
+    window.api.onDownloadError((error) => {
+        handleUpdateState('error', { message: error });
+    });
+window.api.onSetTheme((theme) => {
     applyMode(theme);
     });
     window.api.onNewVideo((file) => {
