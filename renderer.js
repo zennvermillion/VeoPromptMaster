@@ -190,34 +190,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // --- MANAJEMEN UI AUTO-UPDATE (VERSI BARU) ---
 
-    // Fungsi terpusat untuk mengelola semua status UI notifikasi
     function handleUpdateState(state, data = {}) {
         if (!updateNotification) return;
 
-        // Sembunyikan semua bagian notifikasi terlebih dahulu
         updateAvailableInfo.hidden = true;
         downloadProgressInfo.hidden = true;
         updateInstallingInfo.hidden = true;
-        updateNotification.hidden = true;
+        
+        // **[PERUBAHAN]** Mengontrol visibilitas dengan style 'display'
+        updateNotification.style.display = 'none'; 
 
         switch (state) {
             case 'available':
                 updateVersionInfo.textContent = `Update v${data.version} tersedia!`;
                 updateAvailableInfo.hidden = false;
-                updateNotification.hidden = false;
+                updateNotification.style.display = 'flex'; // Tampilkan bar notifikasi
                 break;
             case 'progress':
                 downloadProgressBar.style.width = `${Math.round(data.percent)}%`;
                 downloadPercent.textContent = `${Math.round(data.percent)}%`;
                 downloadProgressInfo.hidden = false;
-                updateNotification.hidden = false;
+                updateNotification.style.display = 'flex'; // Tampilkan bar notifikasi
                 break;
             case 'downloaded':
                 updateInstallingInfo.hidden = false;
-                updateNotification.hidden = false;
+                updateNotification.style.display = 'flex'; // Tampilkan bar notifikasi
                 break;
             case 'hidden':
-                // Biarkan semua tersembunyi
+                // Biarkan 'display' tetap 'none' seperti yang sudah diatur di atas
                 break;
         }
     }
