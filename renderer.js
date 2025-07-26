@@ -28,8 +28,59 @@ document.addEventListener('DOMContentLoaded', () => {
     let historyData = [], favoriteData = [], metadataBatch = [], niches = {}, apiKeys = []; // Tambahkan state apiKeys
     let editingItem = null;
     const BATCH_GOAL = 25;
-    const defaultNiches = { "💫 Abstract & Motion": ["Glowing particle symphony"], "🌿 Nature & Landscape": ["Fog rolling over mountain ridge at dawn"]};
-    
+    const defaultNiches = {
+        "🌟 Weekly Trends": [],
+        "💫 Abstract & Motion": [
+            "Liquid chrome morphing shapes",
+            "Neon light trails in a dark void",
+            "Geometric patterns endlessly looping"
+        ],
+        "🏢 Business & Office": [
+            "Team collaborating around a holographic table",
+            "Sunlight streaming into a modern minimalist office",
+            "Close-up of fingers typing rapidly on a keyboard"
+        ],
+        "🍔 Food & Culinary": [
+            "Super slow-motion of honey dripping onto pancakes",
+            "Sizzling steak on a grill with rising smoke",
+            "Chef garnishing a dish with fresh herbs, extreme close-up"
+        ],
+        "🌿 Nature & Landscape": [
+            "Drone shot flying over a snow-capped mountain range",
+            "Underwater view of a vibrant coral reef",
+            "Golden hour light filtering through a dense forest"
+        ],
+        "🎉 Seasonal & Event": [
+            "Confetti falling in slow motion at a New Year's party",
+            "Jack-o'-lanterns glowing on a foggy night",
+            "Macro shot of a snowflake melting on a window pane"
+        ],
+        "🌙 Surreal & Dreamscape": [
+            "Floating islands drifting in a pastel-colored sky",
+            "A giant clock melting in a desert landscape",
+            "An astronaut discovering a glowing alien forest"
+        ],
+        "🤖 Tech & Futuristic": [
+            "A self-driving car in a neon-lit cyberpunk city",
+            "Intricate data streams flowing through a server room",
+            "A humanoid robot performing a delicate, human-like task"
+        ],
+        "🎬 Immersive Cinematics": [
+            "First-person POV running through a battlefield",
+            "Seamless orbital shot around a detailed spaceship",
+            "Extreme wide shot of a hero facing a colossal monster"
+        ],
+        "📼 Retro Futurism": [
+            "1980s-style wireframe computer interface",
+            "A flying DeLorean-style car in a vintage cityscape",
+            "A family watching a domed television in a 1950s home"
+        ],
+        "⏳ Timelapse Wonders": [
+            "Clouds rushing across the sky from dawn to dusk",
+            "A flower blooming from bud to full blossom",
+            "City traffic creating light streaks at night"
+        ]
+    };
     // --- FUNGSI BANTUAN (LENGKAP) ---
     function showNotification(text, type = 'success') {
         if (!notif) return;
@@ -372,7 +423,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (generateBtn) { generateBtn.addEventListener("click", () => { if (!subNicheSelect.value) return; output.textContent = "Generating..."; generateSinglePrompt(subNicheSelect.value); }); }
+    if (generateBtn) {
+        generateBtn.addEventListener("click", () => {
+            // [TAMBAHAN] Kode untuk pindah tab
+            // 1. Cari tombol tab "Generator"
+            const generatorTab = document.querySelector('.main-tab-button[data-tab="generator"]');
+            // 2. Jika ditemukan, panggil fungsi klik untuk mengaktifkannya
+            if (generatorTab) {
+                generatorTab.click();
+            }
+            // [BATAS AKHIR TAMBAHAN]
+
+            // Kode yang sudah ada sebelumnya
+            if (!subNicheSelect.value) return;
+            output.textContent = "Generating...";
+            generateSinglePrompt(subNicheSelect.value);
+        });
+    }
     if (generateBatchBtn) { generateBatchBtn.addEventListener('click', async () => { const sub = subNicheSelect.value; const count = parseInt(batchCountInput.value, 10); if (!sub || !count) { showNotification("Pilih sub-kategori dan tentukan jumlah."); return; } setButtonsState(true); showNotification(`Meminta ${count} prompt...`); const batchTabBtn = document.querySelector('.main-tab-button[data-tab="batch-results"]'); if (batchResultList) { batchResultList.innerHTML = `<div class="empty-queue">Meminta ${count} prompt ke AI...</div>`; if(exportBatchResultsBtn) exportBatchResultsBtn.disabled = true; if (batchTabBtn) batchTabBtn.click(); } const result = await window.api.generateBatchPrompts({ sub, count }); setButtonsState(false); if (result.error) { showNotification(`Error: ${result.error}`); if (batchResultList) batchResultList.innerHTML = `<div class="empty-queue">Error: ${result.error}</div>`; } else if (result.success) { displayBatchResults(result.prompts); } }); }
     if (exportBatchResultsBtn) {
         exportBatchResultsBtn.addEventListener('click', async () => {
