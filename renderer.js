@@ -108,7 +108,48 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadInitialApiKey() { const savedKey = await window.api.getApiKey(); if (apiKeyInput && savedKey) { apiKeyInput.value = savedKey; } }
     async function saveNiches() { await window.api.saveUserNiches(niches); }
     function setActivePrompt(prompt) { activePrompt = prompt; if(activePromptDisplay) { activePromptDisplay.innerHTML = `Sesi Aktif: <span class="prompt-text">${prompt.substring(0, 70)}...</span>`; activePromptDisplay.hidden = false; } showNotification("Prompt Aktif ditetapkan. Pindah ke Production Queue."); }
-    function updateExportUI() { if(!exportCounter || !progressBar || !exportCsvBtn || !clearBatchBtn) return; const count = metadataBatch.length; const BATCH_GOAL = 25; exportCounter.textContent = `${count}/${BATCH_GOAL}`; progressBar.style.width = `${(count / BATCH_GOAL) * 100}%`; exportCsvBtn.disabled = count === 0; clearBatchBtn.disabled = count === 0; }
+    function updateExportUI() {
+        if(!exportCounter || !progressBar || !exportCsvBtn || !clearBatchBtn) return;
+        const count = metadataBatch.length;
+        exportCounter.textContent = `${count}/${BATCH_GOAL}`;
+        progressBar.style.width = `${(count / BATCH_GOAL) * 100}%`;
+        exportCsvBtn.disabled = count === 0;
+        clearBatchBtn.disabled = count === 0;
+
+        // [TAMBAHAN] Cek jika target batch tercapai
+        if (count >= BATCH_GOAL) {
+            showNotification(`Batch ekspor penuh! Membuka dialog simpan...`);
+            triggerCsvExport();
+        }
+    }
+    async function triggerCsvExport() {
+        if (metadataBatch.length === 0) {
+            showNotification('Tidak ada data untuk diekspor.');
+            return;
+        }
+        // Header diubah sesuai permintaan
+        const header = 'Filename,Title,Description,Keywords\n';
+        
+        // Urutan data diubah agar sesuai dengan header
+        const rows = metadataBatch.map(item => {
+            const filename = `"${(item.sourceFilename || '').replace(/"/g, '""')}"`;
+            const title = `"${(item.title || '').replace(/"/g, '""')}"`;
+            const description = `"${(item.description || '').replace(/"/g, '""')}"`;
+            const keywords = `"${(item.keywords || '').replace(/"/g, '""')}"`;
+            return `${filename},${title},${description},${keywords}`;
+        }).join('\n');
+        
+        const csvData = header + rows;
+        const result = await window.api.saveCsv(csvData);
+        if (result.success) {
+            showNotification(`File CSV (${metadataBatch.length} item) berhasil disimpan!`);
+            metadataBatch = [];
+            localStorage.setItem('veoMetadataBatch_v2', JSON.stringify(metadataBatch));
+            updateExportUI();
+        } else if (!result.canceled) {
+            showNotification(`Gagal menyimpan CSV: ${result.error}`);
+        }
+    }
     function renderList(tab, data) { const listContainer = getEl(`${tab}List`); if (!listContainer) return; listContainer.innerHTML = ''; if (data.length === 0) { listContainer.innerHTML = `<div class="list-item"><span class="prompt-text">Belum ada data.</span></div>`; return; } data.slice().reverse().forEach(item => { const promptText = (typeof item === 'object') ? item.prompt : item; if(!promptText) return; const div = document.createElement("div"); div.className = 'list-item'; const textSpan = document.createElement('span'); textSpan.className = 'prompt-text'; textSpan.textContent = promptText; textSpan.title = promptText; textSpan.addEventListener("click", () => { output.textContent = promptText; currentPrompt = promptText; copyBtn.disabled = false; favBtn.disabled = favoriteData.includes(promptText); negativePromptSection.hidden = true; }); const actionsDiv = document.createElement('div'); actionsDiv.className = 'action-icons'; const reuseBtn = document.createElement('button'); reuseBtn.className = 'icon-button'; reuseBtn.title = 'Reuse Prompt'; reuseBtn.innerHTML = ICONS.reuse; reuseBtn.addEventListener('click', () => { setActivePrompt(promptText); const queueTabBtn = document.querySelector('.main-tab-button[data-tab="production-queue"]'); if (queueTabBtn) queueTabBtn.click(); }); actionsDiv.appendChild(reuseBtn); if (tab === 'history') { const favBtnIcon = document.createElement('button'); favBtnIcon.className = 'icon-button'; favBtnIcon.title = 'Tambah ke Favorite'; favBtnIcon.innerHTML = ICONS.favorite; favBtnIcon.addEventListener('click', () => addToFavorite(promptText)); actionsDiv.appendChild(favBtnIcon); } else { const delBtn = document.createElement("button"); delBtn.className = 'icon-button'; delBtn.title = "Hapus dari Favorite"; delBtn.innerHTML = ICONS.trash; delBtn.addEventListener('click', () => removeFavorite(promptText)); actionsDiv.appendChild(delBtn); } div.appendChild(textSpan); div.appendChild(actionsDiv); listContainer.appendChild(div); });}
     function addToHistory(historyObject) { if (!historyObject || !historyObject.prompt) return; if (historyData.some(item => item.prompt === historyObject.prompt)) return; historyData.push(historyObject); if (historyData.length > 50) historyData.shift(); localStorage.setItem("veoPromptHistory_v3", JSON.stringify(historyData)); }
     function addToFavorite(prompt) { if (!prompt || favoriteData.includes(prompt)) return; favoriteData.push(prompt); localStorage.setItem("veoPromptFavorites_v2", JSON.stringify(favoriteData)); showNotification("Ditambahkan ke favorit!"); renderList('favorite', favoriteData); if (favBtn) favBtn.disabled = true; }
@@ -476,34 +517,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
     if (exportCsvBtn) {
-        exportCsvBtn.addEventListener('click', async () => {
-            if (metadataBatch.length === 0) {
-                showNotification('Tidak ada data untuk diekspor.');
-                return;
-            }
-            // Header diubah sesuai permintaan
-            const header = 'Filename,Title,Description,Keywords\n';
-            
-            // Urutan data diubah agar sesuai dengan header
-            const rows = metadataBatch.map(item => {
-                const filename = `"${(item.sourceFilename || '').replace(/"/g, '""')}"`;
-                const title = `"${(item.title || '').replace(/"/g, '""')}"`;
-                const description = `"${(item.description || '').replace(/"/g, '""')}"`;
-                const keywords = `"${(item.keywords || '').replace(/"/g, '""')}"`;
-                return `${filename},${title},${description},${keywords}`;
-            }).join('\n');
-            
-            const csvData = header + rows;
-            const result = await window.api.saveCsv(csvData);
-            if (result.success) {
-                showNotification('File CSV berhasil disimpan!');
-                metadataBatch = [];
-            localStorage.setItem('veoMetadataBatch_v2', JSON.stringify(metadataBatch));
-            updateExportUI();
-            } else if (!result.canceled) {
-                showNotification(`Gagal menyimpan CSV: ${result.error}`);
-            }
-        });
+        // [GANTI SELURUH ISI EVENT LISTENER INI]
+        exportCsvBtn.addEventListener('click', triggerCsvExport);
     }
 
     if (manageApiKeysBtn) {
