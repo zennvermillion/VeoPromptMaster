@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Atur timer untuk menyembunyikan notifikasi setelah 3 detik
         notif.timeoutId = setTimeout(() => {
             notif.classList.remove('show');
-        }, 5000);
+        }, 3000);
     }
     function setButtonsState(isLoading) { if (generateBtn) generateBtn.disabled = isLoading; if (generateBatchBtn) generateBatchBtn.disabled = isLoading; }
     function applyMode(theme) { 
@@ -624,7 +624,7 @@ window.api.onSetTheme((theme) => {
             </div>
             <button class="generate-meta-queue-btn primary">Generate Metadata</button>
         `;
-        productionQueueEl.appendChild(itemEl);
+        productionQueueEl.prepend(itemEl);
 
         const generateBtn = itemEl.querySelector('.generate-meta-queue-btn');
         // Menambahkan event listener ke tombol "Generate Metadata"

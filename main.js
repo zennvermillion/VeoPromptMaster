@@ -215,8 +215,8 @@ ipcMain.handle("generate-prompt", async (event, { sub }) => {
     Based on the sub-category "${sub}", create a single, detailed, and highly cinematic 8-second video prompt.
 
     Apply these critical principles:
-    1.  **Subject Uniqueness**: Do not use any subjects from this exclusion list: [${usedSubjects.join(', ')}].
-    2.  **Structure**: Follow a 'One Subject, One Scene' structure. Clearly describe the subject, their specific action, the detailed environment, camera details, lighting, mood, and color grading.
+    1.  **Rich and Flowing Action**: This is the most important part. Describe the subject's action with rich, detailed, and flowing language. The action must imply a micro-story or a clear emotional state, not just a simple movement. For example, instead of "a chef cooks," describe "a focused chef meticulously plates a dessert, using tweezers to place a single flower petal, steam gently rising from the dish."
+    2.  **Structure**: Follow a 'One Subject, One Scene' structure. Describe the subject (must be unique and not from this exclusion list: [${usedSubjects.join(', ')}]), the detailed environment, camera details, lighting, mood, and color grading.
 
     Your response MUST be a valid JSON object with THREE keys:
     1.  "subject": A very short (1-3 words) description of the main subject for uniqueness tracking.
@@ -254,18 +254,18 @@ ipcMain.handle('generate-batch-prompts', async (event, { sub, count }) => {
     const GEMINI_API_KEY = getNextApiKey();
     if (!GEMINI_API_KEY) return { error: "Tidak ada Kunci API." };
 
-    const promptText = `
+     const promptText = `
     Based on the sub-category "${sub}", create ${count} DIFFERENT and UNIQUE cinematic 8-second video prompts.
     
     CRITICAL RULES:
-    1.  **Assemble a Detailed Paragraph**: For each prompt, you MUST combine all the following elements into a single, detailed paragraph for the "prompt" key:
+    1.  **Rich and Flowing Action**: The subject's action must be the centerpiece. Describe it with rich, detailed, and flowing language. The action should imply a micro-story or a clear emotional state, not just a simple movement. For instance, instead of "a knight stands," describe "a weary knight slowly kneels, planting their greatsword into the cracked earth, head bowed in exhaustion."
+    2.  **Assemble a Detailed Paragraph**: For each prompt, you MUST combine the action with all the following elements into a single, detailed paragraph for the "prompt" key:
         - A unique subject (not from the exclusion list: [${usedSubjects.join(', ')}])
-        - A specific action the subject is doing.
         - A detailed environment/scene.
         - Cinematic details (camera shot, camera movement, lighting).
         - A specific mood and atmosphere.
         - A cinematic color grading style.
-    2.  **Uniqueness**: Each of the ${count} new prompts must have a unique subject from each other and from the exclusion list.
+    3.  **Uniqueness**: Each of the ${count} new prompts must have a unique subject from each other and from the exclusion list.
 
     Your response MUST be a valid JSON object with a single key "prompts".
     The value of "prompts" MUST be an array of JSON objects.
